@@ -1,0 +1,16 @@
+<head class="head">
+  {% if page.title %}
+    <title>{{ page.title }} | syte</title>
+  {% else %}
+    <title>syte</title>
+  {% endif %}
+</head>
+
+{% if page.description %}
+  <meta name="description" content="{{ page.description }}">
+{% else %}
+  <meta name="description" content="come for the info, stay for the game">
+{% endif %}
+
+<link rel="stylesheet" href="/css/reset.css"> <!-- link to style reset -->
+<link rel="stylesheet" href="/css/custom.css"> <!-- link to main styling -->

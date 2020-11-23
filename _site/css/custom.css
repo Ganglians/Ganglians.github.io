@@ -1,0 +1,446 @@
+/*Home page's scss styling*/
+.home {
+  /*Mixins, variables, etc.*/
+  /*Colors*/
+  /*The color between transitions for home's background*/
+  /*height: 100vh;*/
+  background: linear-gradient(to top, #071957 -5vh, #666699, black);
+  /*Represents a single bar of specified height, color, and animation speed*/
+  /*HOME*/
+  /*The home view's three partitions*/
+  /* .hero-three END */
+  /*Include to hide HTML element by default*/ }
+  .home .hero-one {
+    height: 55vh;
+    color: white; }
+    .home .hero-one h1 {
+      font-family: 'Open Sans', helvetica, arial, sans;
+      font-size: 10rem;
+      padding: 10vh;
+      text-align: center; }
+    .home .hero-one .sun {
+      /*position: absolute;*/
+      display: block;
+      width: 30vw;
+      height: 25vh;
+      margin-left: auto;
+      margin-right: auto; }
+  .home .hero-two {
+    /*Allow visibility even if hero three changes perspective property*/
+    z-index: 1;
+    background-color: rgba(0, 0, 0, 0);
+    /*Transparent background*/
+    background-image: image-url("bg_mountains.svg");
+    background-repeat: no-repeat;
+    /*Can stretch bg image due to adding 'preserveAspectRatio="none"' line to it*/
+    background-size: 105vw 20vh;
+    /*hero section dimensions*/
+    width: 100vw;
+    height: 23vh;
+    /*Remove hero two from document flow. Can Take as much space as needed or more
+    if specified. Space it used to take up below is taken over by hero three, 
+    which is fine since hero three is purely decorative (and the flexibility
+    opens up some interesting possibilities).*/
+    position: absolute;
+    /*Set up soundbar positioning and animation, can take a 'glow' color and 
+    animation delay as arguments*/
+    /*Navigaiton links*/ }
+    .home .hero-two .links {
+      /*Spaces words out to take up whole width*/
+      display: flex;
+      justify-content: space-between;
+      /*Links with bars*/ }
+      .home .hero-two .links li {
+        list-style: none;
+        /*Bar dimensions*/
+        /*height*/
+        /*width*/
+        /*img {*/
+        /*}*/
+        /*Animated bars that go right under the navigation links*/ }
+        .home .hero-two .links li a {
+          /*Remove traditional link style*/
+          text-decoration: none;
+          color: #ff00cc;
+          font-family: 'Open Sans', helvetica, arial, sans;
+          font-size: 1em;
+          font-weight: bold;
+          /*Links change color when hovered over*/
+          position: relative;
+          bottom: 4vh; }
+          .home .hero-two .links li a:hover, .home .hero-two .links li a:active {
+            color: #bf00ff; }
+        .home .hero-two .links li .icon {
+          /*display: block;*/
+          /*width: 40px;*/
+          /*height: 20px;*/
+          width: 3vw;
+          /*Default color*/
+          filter: invert(15%) sepia(94%) saturate(3967%) hue-rotate(305deg) brightness(111%) contrast(122%); }
+          .home .hero-two .links li .icon:hover, .home .hero-two .links li .icon:active {
+            filter: invert(14%) sepia(99%) saturate(4163%) hue-rotate(280deg) brightness(109%) contrast(123%); }
+        .home .hero-two .links li .bar1 {
+          width: 4vw;
+          height: 14vh;
+          /*Remove bar from normal doc. flow. move to starting point (top left)
+          of non-static parent. Make it start at bottom of said parent. Defaults 
+          to html tag if no other parent is removed from normal doc flow */
+          position: absolute;
+          background: linear-gradient(to top, #9933ff, #cc00ff);
+          /*Bar container has absolute position, separates section from list 
+          elements and allows them to grow from the bottom up by grounding bar1 
+          element with 'bottom: 0' to closest parent not bound to flow (in this
+          case, hero two)*/
+          /*Keyframes for bounce animation; alters height like sound bars*/
+          /*Aesthetic only*/
+          opacity: 0.95;
+          /*Bar positioning don't need because bars positioned at bottom of h2 which 
+          is where they should be positioned*/
+          /*position: absolute;*/
+          bottom: 0;
+          /*Bind the bounce animation to the bars*/
+          animation-name: bounce;
+          animation-timing-function: ease-in-out;
+          animation-iteration-count: infinite;
+          animation-play-state: running;
+          animation-duration: 400ms;
+          animation-delay: 0ms;
+          animation-direction: alternate;
+          /*Add a 'glow' to each bar according to color*/
+          box-shadow: 0vw 0vh 4vh 0.25vh #cc00ff;
+          /*Placeholder (make bars less bright later)*/
+          opacity: 0.70; }
+@keyframes bounce {
+  0% {
+    height: 18vh; }
+  100% {
+    height: 18.25vh; } }
+        .home .hero-two .links li .bar2 {
+          width: 4vw;
+          height: 14vh;
+          /*Remove bar from normal doc. flow. move to starting point (top left)
+          of non-static parent. Make it start at bottom of said parent. Defaults 
+          to html tag if no other parent is removed from normal doc flow */
+          position: absolute;
+          background: linear-gradient(to top, #00ff99, #00ffcc);
+          /*Keyframes for bounce animation; alters height like sound bars*/
+          /*Aesthetic only*/
+          opacity: 0.95;
+          /*Bar positioning don't need because bars positioned at bottom of h2 which 
+          is where they should be positioned*/
+          /*position: absolute;*/
+          bottom: 0;
+          /*Bind the bounce animation to the bars*/
+          animation-name: bounce;
+          animation-timing-function: ease-in-out;
+          animation-iteration-count: infinite;
+          animation-play-state: running;
+          animation-duration: 400ms;
+          animation-delay: 150ms;
+          animation-direction: alternate;
+          /*Add a 'glow' to each bar according to color*/
+          box-shadow: 0vw 0vh 4vh 0.25vh #00ffcc;
+          /*Placeholder (make bars less bright later)*/
+          opacity: 0.70; }
+@keyframes bounce {
+  0% {
+    height: 18vh; }
+  100% {
+    height: 18.25vh; } }
+        .home .hero-two .links li .bar3 {
+          width: 4vw;
+          height: 14vh;
+          /*Remove bar from normal doc. flow. move to starting point (top left)
+          of non-static parent. Make it start at bottom of said parent. Defaults 
+          to html tag if no other parent is removed from normal doc flow */
+          position: absolute;
+          background: linear-gradient(to top, #ff00cc, #ff66ff);
+          /*Keyframes for bounce animation; alters height like sound bars*/
+          /*Aesthetic only*/
+          opacity: 0.95;
+          /*Bar positioning don't need because bars positioned at bottom of h2 which 
+          is where they should be positioned*/
+          /*position: absolute;*/
+          bottom: 0;
+          /*Bind the bounce animation to the bars*/
+          animation-name: bounce;
+          animation-timing-function: ease-in-out;
+          animation-iteration-count: infinite;
+          animation-play-state: running;
+          animation-duration: 400ms;
+          animation-delay: 0ms;
+          animation-direction: alternate;
+          /*Add a 'glow' to each bar according to color*/
+          box-shadow: 0vw 0vh 4vh 0.25vh #ff66ff;
+          /*Placeholder (make bars less bright later)*/
+          opacity: 0.70; }
+@keyframes bounce {
+  0% {
+    height: 18vh; }
+  100% {
+    height: 18.25vh; } }
+        .home .hero-two .links li .bar4 {
+          width: 4vw;
+          height: 14vh;
+          /*Remove bar from normal doc. flow. move to starting point (top left)
+          of non-static parent. Make it start at bottom of said parent. Defaults 
+          to html tag if no other parent is removed from normal doc flow */
+          position: absolute;
+          background: linear-gradient(to top, #99ffcc, #99ffff);
+          /*Keyframes for bounce animation; alters height like sound bars*/
+          /*Aesthetic only*/
+          opacity: 0.95;
+          /*Bar positioning don't need because bars positioned at bottom of h2 which 
+          is where they should be positioned*/
+          /*position: absolute;*/
+          bottom: 0;
+          /*Bind the bounce animation to the bars*/
+          animation-name: bounce;
+          animation-timing-function: ease-in-out;
+          animation-iteration-count: infinite;
+          animation-play-state: running;
+          animation-duration: 400ms;
+          animation-delay: 200ms;
+          animation-direction: alternate;
+          /*Add a 'glow' to each bar according to color*/
+          box-shadow: 0vw 0vh 4vh 0.25vh #99ffff;
+          /*Placeholder (make bars less bright later)*/
+          opacity: 0.70; }
+@keyframes bounce {
+  0% {
+    height: 18vh; }
+  100% {
+    height: 18.25vh; } }
+  .home .hero-three {
+    /*Hero height, not needed but put here for clarity*/
+    /*Hero three takes up remaining vertical space available on page*/
+    height: 45vh;
+    overflow: hidden;
+    /*Grid plane that contains the grid within it*/
+    /* .plane END */ }
+    .home .hero-three .horizontal-horizon {
+      width: 100vw;
+      height: 1vw;
+      /*Remove bar from normal doc. flow. move to starting point (top left)
+      of non-static parent. Make it start at bottom of said parent. Defaults 
+      to html tag if no other parent is removed from normal doc flow */
+      position: absolute;
+      background: linear-gradient(to top, #35FBFC, #35FBFC);
+      position: relative;
+      /*Position it at arond where gridlines end*/
+      top: 20vh;
+      box-shadow: 0vw -0.25vh 10px 0.3vh #35FBFC, 0vw 0.23vh 10px -0.3vh #35FBFC;
+      /*Bring horizontal horizon line to the front of bars for a smooth 
+      transition*/
+      z-index: 0;
+      opacity: 0.5; }
+    .home .hero-three .plane {
+      /*Assign same height as parent to position everything as if working in hero three*/
+      /*position: relative;*/
+      height: 45vh;
+      /*Set a perspective from where to observe the transformed grid*/
+      perspective: 10vh;
+      /*z-index: -1;*/
+      /*overflow: hidden;*/
+      /* .grid END */ }
+      .home .hero-three .plane .grid {
+        /*position: absolute;*/
+        /*      position: relative;
+              z-index: -1;*/
+        /*Ensure grid covers lines in their entirety, even when grid rotates*/
+        width: 100%;
+        height: 100%;
+        /*Line thickness*/
+        /*Line height (for ud lines)*/
+        /*opacity: 0.5;*/
+        /*Create illusion of grid horizon*/
+        transform: rotateX(45deg);
+        /*Vertical lines ('ud' going up and down)*/
+        /* .vertical-gridlines END */ }
+        .home .hero-three .plane .grid .horizontal-gridlines div:nth-of-type(1) {
+          width: 100vw;
+          height: 0.7vh;
+          /*Remove bar from normal doc. flow. move to starting point (top left)
+          of non-static parent. Make it start at bottom of said parent. Defaults 
+          to html tag if no other parent is removed from normal doc flow */
+          position: absolute;
+          background: linear-gradient(to top, #35FBFC, transparent);
+          /*box-shadow: 0vw -0.10vh 10px 0.3vh $aqua, 0vw 0.10vh 10px -0.3vh $aqua;*/
+          top: 45%; }
+        .home .hero-three .plane .grid .horizontal-gridlines div:nth-of-type(2) {
+          width: 100vw;
+          height: 0.7vh;
+          /*Remove bar from normal doc. flow. move to starting point (top left)
+          of non-static parent. Make it start at bottom of said parent. Defaults 
+          to html tag if no other parent is removed from normal doc flow */
+          position: absolute;
+          background: linear-gradient(to top, #35FBFC, transparent);
+          top: 50%; }
+        .home .hero-three .plane .grid .horizontal-gridlines div:nth-of-type(3) {
+          width: 100vw;
+          height: 0.7vh;
+          /*Remove bar from normal doc. flow. move to starting point (top left)
+          of non-static parent. Make it start at bottom of said parent. Defaults 
+          to html tag if no other parent is removed from normal doc flow */
+          position: absolute;
+          background: linear-gradient(to top, #35FBFC, transparent);
+          top: 55%; }
+        .home .hero-three .plane .grid .horizontal-gridlines div:nth-of-type(4) {
+          width: 100vw;
+          height: 0.7vh;
+          /*Remove bar from normal doc. flow. move to starting point (top left)
+          of non-static parent. Make it start at bottom of said parent. Defaults 
+          to html tag if no other parent is removed from normal doc flow */
+          position: absolute;
+          background: linear-gradient(to top, #35FBFC, transparent);
+          top: 60%; }
+        .home .hero-three .plane .grid .horizontal-gridlines div:nth-of-type(5) {
+          width: 100vw;
+          height: 0.7vh;
+          /*Remove bar from normal doc. flow. move to starting point (top left)
+          of non-static parent. Make it start at bottom of said parent. Defaults 
+          to html tag if no other parent is removed from normal doc flow */
+          position: absolute;
+          background: linear-gradient(to top, #35FBFC, transparent);
+          top: 65%; }
+        .home .hero-three .plane .grid .horizontal-gridlines div:nth-of-type(6) {
+          width: 100vw;
+          height: 0.7vh;
+          /*Remove bar from normal doc. flow. move to starting point (top left)
+          of non-static parent. Make it start at bottom of said parent. Defaults 
+          to html tag if no other parent is removed from normal doc flow */
+          position: absolute;
+          background: linear-gradient(to top, #35FBFC, transparent);
+          top: 70%; }
+        .home .hero-three .plane .grid .vertical-gridlines {
+          position: relative;
+          bottom: -18vh; }
+          .home .hero-three .plane .grid .vertical-gridlines div:nth-of-type(1) {
+            width: 0.7vh;
+            height: 45vh;
+            /*Remove bar from normal doc. flow. move to starting point (top left)
+            of non-static parent. Make it start at bottom of said parent. Defaults 
+            to html tag if no other parent is removed from normal doc flow */
+            position: absolute;
+            background: linear-gradient(to top, #35FBFC, #35FBFC);
+            /*position: absolute;*/
+            /*background: linear-gradient(to left, $aqua, transparent);*/
+            left: 0%; }
+          .home .hero-three .plane .grid .vertical-gridlines div:nth-of-type(2) {
+            width: 0.7vh;
+            height: 45vh;
+            /*Remove bar from normal doc. flow. move to starting point (top left)
+            of non-static parent. Make it start at bottom of said parent. Defaults 
+            to html tag if no other parent is removed from normal doc flow */
+            position: absolute;
+            background: linear-gradient(to top, #35FBFC, #35FBFC);
+            left: 10%; }
+          .home .hero-three .plane .grid .vertical-gridlines div:nth-of-type(3) {
+            width: 0.7vh;
+            height: 45vh;
+            /*Remove bar from normal doc. flow. move to starting point (top left)
+            of non-static parent. Make it start at bottom of said parent. Defaults 
+            to html tag if no other parent is removed from normal doc flow */
+            position: absolute;
+            background: linear-gradient(to top, #35FBFC, #35FBFC);
+            left: 20%; }
+          .home .hero-three .plane .grid .vertical-gridlines div:nth-of-type(4) {
+            width: 0.7vh;
+            height: 45vh;
+            /*Remove bar from normal doc. flow. move to starting point (top left)
+            of non-static parent. Make it start at bottom of said parent. Defaults 
+            to html tag if no other parent is removed from normal doc flow */
+            position: absolute;
+            background: linear-gradient(to top, #35FBFC, #35FBFC);
+            left: 30%; }
+          .home .hero-three .plane .grid .vertical-gridlines div:nth-of-type(5) {
+            width: 0.7vh;
+            height: 45vh;
+            /*Remove bar from normal doc. flow. move to starting point (top left)
+            of non-static parent. Make it start at bottom of said parent. Defaults 
+            to html tag if no other parent is removed from normal doc flow */
+            position: absolute;
+            background: linear-gradient(to top, #35FBFC, #35FBFC);
+            /*background: linear-gradient(to left, $aqua, transparent);*/
+            left: 40%; }
+          .home .hero-three .plane .grid .vertical-gridlines div:nth-of-type(6) {
+            width: 0.7vh;
+            height: 45vh;
+            /*Remove bar from normal doc. flow. move to starting point (top left)
+            of non-static parent. Make it start at bottom of said parent. Defaults 
+            to html tag if no other parent is removed from normal doc flow */
+            position: absolute;
+            background: linear-gradient(to top, #35FBFC, #35FBFC);
+            left: 50%; }
+          .home .hero-three .plane .grid .vertical-gridlines div:nth-of-type(7) {
+            width: 0.7vh;
+            height: 45vh;
+            /*Remove bar from normal doc. flow. move to starting point (top left)
+            of non-static parent. Make it start at bottom of said parent. Defaults 
+            to html tag if no other parent is removed from normal doc flow */
+            position: absolute;
+            background: linear-gradient(to top, #35FBFC, #35FBFC);
+            left: 60%; }
+          .home .hero-three .plane .grid .vertical-gridlines div:nth-of-type(8) {
+            width: 0.7vh;
+            height: 45vh;
+            /*Remove bar from normal doc. flow. move to starting point (top left)
+            of non-static parent. Make it start at bottom of said parent. Defaults 
+            to html tag if no other parent is removed from normal doc flow */
+            position: absolute;
+            background: linear-gradient(to top, #35FBFC, #35FBFC);
+            left: 70%; }
+          .home .hero-three .plane .grid .vertical-gridlines div:nth-of-type(9) {
+            width: 0.7vh;
+            height: 45vh;
+            /*Remove bar from normal doc. flow. move to starting point (top left)
+            of non-static parent. Make it start at bottom of said parent. Defaults 
+            to html tag if no other parent is removed from normal doc flow */
+            position: absolute;
+            background: linear-gradient(to top, #35FBFC, #35FBFC);
+            left: 80%; }
+          .home .hero-three .plane .grid .vertical-gridlines div:nth-of-type(10) {
+            width: 0.7vh;
+            height: 45vh;
+            /*Remove bar from normal doc. flow. move to starting point (top left)
+            of non-static parent. Make it start at bottom of said parent. Defaults 
+            to html tag if no other parent is removed from normal doc flow */
+            position: absolute;
+            background: linear-gradient(to top, #35FBFC, #35FBFC);
+            left: 90%; }
+          .home .hero-three .plane .grid .vertical-gridlines div:nth-of-type(11) {
+            width: 0.7vh;
+            height: 45vh;
+            /*Remove bar from normal doc. flow. move to starting point (top left)
+            of non-static parent. Make it start at bottom of said parent. Defaults 
+            to html tag if no other parent is removed from normal doc flow */
+            position: absolute;
+            background: linear-gradient(to top, #35FBFC, #35FBFC);
+            left: 100%; }
+  .home .hidden {
+    display: none; }
+  .home #play-button {
+    /*Needs absolute positioning to work even inside the canvas*/
+    position: absolute; }
+  .home html, .home body {
+    /*Give page dimensions so canvas can encompass entirety of page*/
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden; }
+  .home #game-canvas {
+    /*Temporary border*/
+    border: 2px solid #38e3c4;
+    position: absolute;
+    z-index: 0;
+    /*z-index: 1;*/
+    /*TODO: Make good scaling*/
+    /*width: 100%;
+    height: 100%;*/
+    top: 0px;
+    left: 0px;
+    background: transparent; }
+
+/* .home END */
+
+/*# sourceMappingURL=custom.css.map */
