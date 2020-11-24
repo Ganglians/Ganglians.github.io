@@ -17,29 +17,6 @@
 // })();
 
 //*********************************LISTENERS***********************************
-// Contingency, structurally script will already run after page is loaded
-window.onload = getCanvas; // onload event to set canvas variables
-function getCanvas() {
- canvas = document.getElementById("game-canvas");
- console.log("Got canvas: " + canvas.id + '\n'); // TEST OUTPUT
- ctx = canvas.getContext("2d");
-}
-
-//window.onload = document.getElementById("play-button").addEventListener("click", gameArea.tog());
-
-let playButton;
-window.onload = getPlayButton;
-function getPlayButton() {
-  playButton = document.getElementById("play-button");
-  console.log("got play button: " + playButton.id + "\n");
-}
-// playButton.addEventListener("click", function(event) {
-//   gameArea.tog();
-// })
-//playButton.id.addEventListener("click", function(event) {
-//  gameArea.tog();
-//})
-
 // Function that toggles an HTML element's visibility (used on canvas)
 const toggle = (elem) => {
   // Adds or removes 'hidden' class to element
@@ -59,7 +36,7 @@ window.addEventListener("resize", function(event) {
 window.addEventListener("load", function(event) { 
   canvas = document.getElementById("game-canvas");
   ctx = canvas.getContext("2d");
-  
+
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 });  

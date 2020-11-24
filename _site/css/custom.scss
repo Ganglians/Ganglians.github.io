@@ -328,7 +328,8 @@ html, body {
 
 #game-canvas {
   /*Temporary border*/
-  border: 2px solid #38e3c4;
+  border: 1px solid #38e3c4;
+  margin: -2px;
   position: absolute;
   z-index: 0;
   /*z-index: 1;*/
