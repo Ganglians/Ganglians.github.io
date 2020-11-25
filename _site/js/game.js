@@ -183,8 +183,8 @@ var renderer = (function() { // Note: context = ctx for now, later, the 'context
     _drawRectangle(token);
   }
 
-  // TEST: Stroke of rectangle object's border 
-  // use to visualize game token's hitbox boundaries (rectangular) 
+  // Draw stroke of rectangle object's border 
+  // TEST: Use to visualize game token's hitbox boundaries (rectangular) 
   function _drawRectOutline(hb) {
     ctx.beginPath();
     ctx.globalAlpha = 1;
@@ -358,6 +358,7 @@ var gameArea = (function() { // Singleton
   // game token variables:
   var _entities = []; // Holds all (generic) game tokens used in the game
   var _player1 = new playerToken(new vector2d(0, 0), 70, 70, new vector2d(1, 0), new vector2d(125, 5)); //5 isn't active atm since direction is x axis only
+
   // Manages invaders TODO: Any way to remove all invader array methods from invadarr? feel like gameArea should return values for it, then there wouldn't need to be as much nesting (clarity might decrease if not done right though)
   let _invadarr = (function() { // 2d invader array
     //  a: {},  // Associative array, doesn't have built-in methods (ex. length())
@@ -394,12 +395,12 @@ var gameArea = (function() { // Singleton
     }
 
     // Initialize the properties of the array of invaders
-    function _setup(invaderCount = 3, invaderWidth = 80, invaderHeight = 20, gapSpace = 30, velocity, frameRate = 30 /* makes invader movement blocky*/, invaderRows = 2) { 
+    function _setup(invaderCount = 3, invaderWidth = 80, invaderHeight = 20, gapSpace = 30, velocity, frameRate = 50 /* makes invader movement blocky*/, invaderRows = 2) { 
       this._invaderCount = invaderCount;
       this._invaderWidth = invaderWidth;
       this._invaderHeight = invaderHeight;
       this._gapSpace = gapSpace;
-      this._velocity = new vector2d(100, 10); // TODO: Make it so you can send custom velocity (maybe even for each individual invader if needed) 
+      this._velocity = new vector2d(20, 10); // TODO: Make it so you can send custom velocity (maybe even for each individual invader if needed) 
       this._frameUpper = frameRate;
       this._invaderRows = invaderRows;
 
@@ -546,7 +547,7 @@ var gameArea = (function() { // Singleton
 
     function _shoot() {
       // if(!this.wait) {
-      //   this.f.forEach(function(frontliner) { // Frontmost invaders will shoot
+      //   f.forEach(function(frontliner) { // Frontmost invaders will shoot
       //     if(!frontliner.collided) {
       //         frontliner.shoot();           
       //     }
@@ -1031,16 +1032,4 @@ function playerToken(position, width, height, direction, speed, /* BULL1->speed 
                          /*color*/         "yellow");
     }
   }
-}
-
-// ************************************Extra***********************************
-function framesPerSecond() { // Displays fps on canvas
-//   // Extra: Display FPS on canvas                  
-  ctx.fillStyle = "rgba(0, 0, 0, 0)";
-  ctx.fillRect(0, 0, 200, 100);
-  ctx.font = '15px Arial';
-  ctx.fillStyle = 'white';
-  // ctx.fillText("Bullets: " +  shots.length);
-  ctx.fillText("fps: " + fps, canvas.width - 50, canvas.height - 10);
-  // ctx.fillText("playerBH: " + playerBH, canvas.width - 150, canvas.height - 50);
 }
