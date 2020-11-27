@@ -78,8 +78,6 @@ let up    = new vector2d(0, -1),
 let playerBH = 0;
 // let first = true;
 
-// Stacked: Do not re-initialize invaders if already done before 
-var invadersMem = false;
 // Ensures game only starts every other click (start -> reset & stop -> start)
 var go = true;
 
@@ -420,11 +418,8 @@ var gameArea = (function() { // Singleton
       this._frameUpper    = frameRate;
       this._invaderRows   = invaderRows;
 
-      if(!invadersMem) {
-        //gameArea.invadarr().clear(); // Make sure invader array is clear (sanity check mostly)
-        // invadarr.a = [];
-        _clear();
-      }
+      // Make sure invader array is clear (sanity check mostly)
+      _clear();
 
       let frameNum = this._frameUpper; // Cooldown time
       //
@@ -443,50 +438,26 @@ var gameArea = (function() { // Singleton
       let rowSpace = 100; // space between each row
 
       // EACH INDIVIDUAL INVADER
-      if(!invadersMem) {
-        _addRows(invaderRows);
-        // Populate with invaderCount number of invaders
-        for(let i = 0; i < invaderRows; ++ i) {
-          for(let j = 0; j < invaderCount; ++ j) {
-            a[i].push(
-                                    new invaderToken(
-                                      /*position*/   new vector2d (drawAt, y),
-                                      /*width:*/     this._invaderWidth, 
-                                      /*height:*/    this._invaderHeight,  
-                                      /*direcion:*/  this._direction,
-                                      /* NOTE: right now they all share the same speed vector2d, so changing this speed vector will alter the speeds of every invader (all js arguments passed by reference) (are they?) */
-                                      /*speed:   */  this._speed,
-                                      /*collided:*/  false,
-                                      /*color:*/     "green",
-                                      /*fireRate*/   1));
-            gameArea.entities().push(a[i][j]);
-            drawAt += next ;
-          }
-          drawAt = edgeSpace;
-          y += rowSpace; // GRID
+      _addRows(invaderRows);
+      // Populate with invaderCount number of invaders
+      for(let i = 0; i < invaderRows; ++ i) {
+        for(let j = 0; j < invaderCount; ++ j) {
+          a[i].push(
+                                  new invaderToken(
+                                    /*position*/   new vector2d (drawAt, y),
+                                    /*width:*/     this._invaderWidth, 
+                                    /*height:*/    this._invaderHeight,  
+                                    /*direcion:*/  this._direction,
+                                    /* NOTE: right now they all share the same speed vector2d, so changing this speed vector will alter the speeds of every invader (all js arguments passed by reference) (are they?) */
+                                    /*speed:   */  this._speed,
+                                    /*collided:*/  false,
+                                    /*color:*/     "green",
+                                    /*fireRate*/   1));
+          gameArea.entities().push(a[i][j]);
+          drawAt += next ;
         }
-        invadersMem = true;
-      }
-
-      else { // Recycle invader array if it already existed
-        if(this._direction == left) { // make sure invaders initially moving to the right
-          this._direction = right;
-        }
-
-        a.forEach(function(row) {
-          row.forEach(function(invader) {
-            // Reset positioning and other pertinent values
-            // invader.position = {drawAt, y};
-            invader.position.x = drawAt;
-            invader.position.y = y;
-            invader.direction = right;
-            drawAt += next;
-            invader.collided = false; // All invaders intact
-            invader.cooldown = 0; // Reset shot cooldown time
-          });   
-          drawAt = edgeSpace;
-          y += rowSpace; // Y axis space for next row of invaders
-        });
+        drawAt = edgeSpace;
+        y += rowSpace; // GRID
       }
       this.reset(); // Set (or reset, depending) frontliners array
 
@@ -620,7 +591,9 @@ var gameArea = (function() { // Singleton
     if (go == true) { // Initiate game    
       go = false;
       startLoop = true;
-      toggle(canvas); // Make canvas visible
+
+      //renderer.clear(); // Make sure canvas is blank
+      toggle(canvas);   // Make canvas visible
       // Make demo say game's running, make button say stop (toggles play/stop)
       document.getElementById("demo").innerHTML = "Game start";
       document.getElementById("play-button").innerHTML = "Stop";
@@ -756,6 +729,7 @@ var gameArea = (function() { // Singleton
     timeStamp      = 0; // TODO: Reset timeStamp(can it be done?)
 
     _shots    = [];
+    _entities = [];
   }
 
   return {
