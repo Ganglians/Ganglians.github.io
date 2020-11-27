@@ -53,7 +53,7 @@ window.addEventListener('keyup', function(event) {
 
 
 // *****************************GLOBAL VARIABLES*******************************
-// TODO: Add a x and y velocity (invaders should have a difference in case of needing it later)
+// TODO: Add a x and y direction (invaders should have a difference in case of needing it later)
 
 // Object list of key presses ('keydown'). False for unpressed or missing
 var activeKeys = {};
@@ -65,6 +65,14 @@ const ArrowLeft  = 37;
 const ArrowUp    = 38;
 const ArrowRight = 39;
 const ArrowDown  = 40;
+
+// The four cardinal directional vectors
+let up    = new vector2d(0, -1),
+    down  = new vector2d(0, 1),
+    left  = new vector2d(-1, 0),
+    right = new vector2d(1, 0),
+// 'zero' vector, token doesn't move
+    zero = new vector2d(0, 0);
 
 //BUG1 Keep track of frontmost player bullet's height
 let playerBH = 0;
@@ -95,6 +103,11 @@ let dt = 0, oldTimeStamp = 0, fps;
 let reqId; // Holds the requestId upon calling requestAnimationFrame
 
 //*****************************OBJECTS/FUNCTIONS*******************************
+function areEqual(obj1, obj2) {
+  /* quick & dirty way to do comparison between two objects of same type (if their collective strings match, then all their values, including deep nested ones, are all the same) */
+  return JSON.stringify(obj1) == JSON.stringify(obj2);
+}
+
 // vectors for game mechanics and positioning (note: game is 2d for now)
 function vector2d(x, y) {
   this.x = x;
@@ -116,7 +129,7 @@ function vector2dDot(v1, v2) { // dot product
 }
 
 function vectorTimesScalar(v1, s) { // multiply vector parameters by a constant
-  return new vector2d(v1.x * s, v2.x * s);
+  return new vector2d(v1.x * s, v1.y * s);
 }
 
 function vectorLength(v) { // apply distance formula √(x^2 + y^2)
@@ -262,10 +275,10 @@ var physics = (function () {
   // Updates 
   // TODO: Also handles collisions
   function _update(dt = 0) { // TODO: time blind (gameArea has time only)
-    gameArea.entities.forEach(function(entity) {
+    gameArea.entities().forEach(function(entity) {
       // TODO: Need to implement both X and Y directions (only use one of those atm)
-      // entity.y += entity.direction.y * entity.speed.y * dt;
-      //entity.x += entity.direction.x * entity.speed.x * dt;
+      entity.x += entity.direction.x * entity.speed.x * dt;
+      entity.y += entity.direction.y * entity.speed.y * dt;
     });
   }
 
@@ -310,8 +323,8 @@ var physics = (function () {
         }
         // **********************************************************************
         else { // advance
-          let yVelocity = shot.direction.y * shot.speed.y;
-          shot.position.y += yVelocity * dt;
+          let ydirection = shot.direction.y * shot.speed.y;
+          shot.position.y += ydirection * dt;
         }
         // **********************************************************************
       });
@@ -368,11 +381,13 @@ var gameArea = (function() { // Singleton
 
     let _invaderCount, _invaderWidth, _invaderHeight,
         _gapSpace,
-        _velocity, _frameUpper, _invaderRows;
+        _direction, _frameUpper, _invaderRows;
 
     let frameNum = 0; // Marks the current frame you're on
 
-    let wait = false; // 'turns' (frameRate) invaders must wait before moving again
+    // Make invaders wait one 'turn' (frameRate) before moving again
+    let waitAtRight = false;
+    let waitAtLeft = false;
 
     function _totCols(rowIndex) { // Total number of columns for given row
       if(rowIndex < this.r) {
@@ -395,14 +410,15 @@ var gameArea = (function() { // Singleton
     }
 
     // Initialize the properties of the array of invaders
-    function _setup(invaderCount = 3, invaderWidth = 80, invaderHeight = 20, gapSpace = 30, velocity, frameRate = 50 /* makes invader movement blocky*/, invaderRows = 2) { 
-      this._invaderCount = invaderCount;
-      this._invaderWidth = invaderWidth;
+    function _setup(invaderCount = 3, invaderWidth = 80, invaderHeight = 20, gapSpace = 30, direction = right, speed, frameRate = 50 /* makes invader movement blocky (every 50 unit 'seconds', move for 1 unit 'second' */, invaderRows = 2) { 
+      this._invaderCount  = invaderCount;
+      this._invaderWidth  = invaderWidth;
       this._invaderHeight = invaderHeight;
-      this._gapSpace = gapSpace;
-      this._velocity = new vector2d(20, 10); // TODO: Make it so you can send custom velocity (maybe even for each individual invader if needed) 
-      this._frameUpper = frameRate;
-      this._invaderRows = invaderRows;
+      this._gapSpace      = gapSpace;
+      this._direction     = direction;
+      this._speed         = new vector2d(40, 25); // arbitrary for now
+      this._frameUpper    = frameRate;
+      this._invaderRows   = invaderRows;
 
       if(!invadersMem) {
         //gameArea.invadarr().clear(); // Make sure invader array is clear (sanity check mostly)
@@ -410,7 +426,7 @@ var gameArea = (function() { // Singleton
         _clear();
       }
 
-      this.frameNum = 0; // Start waiting time from 0
+      let frameNum = this._frameUpper; // Cooldown time
       //
       // SETUP AND SPACING
       // Relative space between each invader
@@ -437,8 +453,9 @@ var gameArea = (function() { // Singleton
                                       /*position*/   new vector2d (drawAt, y),
                                       /*width:*/     this._invaderWidth, 
                                       /*height:*/    this._invaderHeight,  
-                                      /*direcion:*/  new vector2d(1, 0),
-                                      /*speed:   */  new vector2d(10, 10),
+                                      /*direcion:*/  this._direction,
+                                      /* NOTE: right now they all share the same speed vector2d, so changing this speed vector will alter the speeds of every invader (all js arguments passed by reference) (are they?) */
+                                      /*speed:   */  this._speed,
                                       /*collided:*/  false,
                                       /*color:*/     "green",
                                       /*fireRate*/   1));
@@ -452,8 +469,8 @@ var gameArea = (function() { // Singleton
       }
 
       else { // Recycle invader array if it already existed
-        if(this._velocity.x < 0) { // make sure invaders initially moving to the right
-          this._velocity.x *= -1;
+        if(this._direction == left) { // make sure invaders initially moving to the right
+          this._direction = right;
         }
 
         a.forEach(function(row) {
@@ -462,6 +479,7 @@ var gameArea = (function() { // Singleton
             // invader.position = {drawAt, y};
             invader.position.x = drawAt;
             invader.position.y = y;
+            invader.direction = right;
             drawAt += next;
             invader.collided = false; // All invaders intact
             invader.cooldown = 0; // Reset shot cooldown time
@@ -472,7 +490,8 @@ var gameArea = (function() { // Singleton
       }
       this.reset(); // Set (or reset, depending) frontliners array
 
-      wait = false;
+      waitAtRight = false;
+      waitAtLeft =  false;
     }
 
     function _reset() {
@@ -483,27 +502,39 @@ var gameArea = (function() { // Singleton
 
     function _update(dt = 0) {
       // update positioning
-      if (this.frameNum ++ >= this._frameUpper) { // causes a blink/flicker effect
-        this.frameNum = 0; // Reset frame
+      if (frameNum -- <= 0) { // causes a blink/flicker effect, they're only allowed to move once, when the frameNum ends its cooldown
+        frameNum = this._frameUpper; // Start cooldown time again
 
-        let vLeftmost = gameArea.invaderFieldHitbox().left();
+        let vLeftmost =  gameArea.invaderFieldHitbox().left();
         let vRightmost = gameArea.invaderFieldHitbox().right();
 
-        if(wait) { // move 'forward' y axis by 10 pixels (? TODO: use yVelocity)
+        if(waitAtRight || waitAtLeft) { // move downward for one turn after the frame's cooldown (however long a 'frame'/blink lasts)
           a.forEach(function(row) {
             row.forEach(function(invader) {
-              invader.position.y += 15;
+              // invader.position.y += 15;
+              //TODO: find a way to 'remember' what direction x was heading in, so that way can head the opposite way after heading downwards for one 'step' (this is in regards to trying to find a way to update each invader using their own respective speeds and directions). Also, instead of directly incrementing the y positioning over here, generalize it so that only the direction vector gets updated then the position changes later on using position = speed * direction * dt (the change in directions from moving through the x axis to now only moving through the y axis should suffice so that a general equation like this will accurately update the positioning)
+              invader.direction = down;
+              //this._direction = down; // BUG, for some reason this can't be accessed nor used to add to invader position even though it's scope isn't limited here
+              invader.position = vector2dAdd(invader.position, vectorTimesScalar(invader.direction, 20)); // BUG
             });
           });
-          // Change directions after reaching canvas bound
-          this._velocity.x *= -1;
-          wait = false;
+          if(waitAtRight) {
+            waitAtRight = false;
+            //invader.direction = left;
+            this._direction = left; 
+          }
+          else {
+            waitAtLeft = false;
+            //invader.direction = right;
+            this._direction = right;
+          }
         }
         else {
           // Check left and right vader boundaries
-          let dist  = this._velocity.x; //* dt; //TODO: same movement w/ seconds
+          let dist  =  this._direction.x * this._speed.x; //* dt; //TODO: same movement w/ seconds
+          // TODO: shouldn't you only have to check this once? after each invader is moved? instead of comparing the hitbox each time a single invader moves maybe.. then again this could result in some of them going over the boundary, but that's only when they're not moving at same speed i think...
           let distR = vRightmost + dist;
-          let distL = vLeftmost + dist;
+          let distL = vLeftmost  + dist;
 
           // Movement based on canvas boundary collisions
           // Right boundary of canvas
@@ -519,7 +550,7 @@ var gameArea = (function() { // Singleton
               });
             });
 
-            wait = true; // invaders wait at corner for two 'turns' (frameRate)
+            waitAtRight = true; // invaders wait at corner for two 'turns' (frameRate)
           }
 
           // Left boundary of canvas
@@ -533,10 +564,10 @@ var gameArea = (function() { // Singleton
               });
             });
 
-            wait = true;
+            waitAtLeft = true;
           }
 
-          else a.forEach(function(row) { // default, move
+          else a.forEach(function(row) { // default, just move
             row.forEach(function(invader) {
               invader.position.x += dist;
             });
@@ -571,7 +602,8 @@ var gameArea = (function() { // Singleton
       invaderWidth:  function() { return _invaderWidth;  },
       invaderHeight: function() { return _invaderHeight; },
       gapSpace:      function() { return _gapSpace;      },
-      velocity:      function() { return _velocity;      },
+      direction:     function() { return _direction;     },
+      speed:         function() { return _speed;         },
       frameUpper:    function() { return _frameUpper;    },
       invaderRows:   function() { return _invaderRows;   }
     };
@@ -661,14 +693,18 @@ var gameArea = (function() { // Singleton
 
     // physics.update(); // TODO: soon
 
+    // Will be able to remove once physics is implemented
     _player1.update(dt); // Time should only be observable on gameArea
     _player1.shoot(); // Update shotkeeper with any bullets player shot
 
     //WIP: Gonna edit invaders to move according to time passed
     // _inv.update(dt);
     //_inv.shoot();
+    // Will be able to remove once physics is implemented
     _invadarr.update(dt);
     _invadarr.shoot();
+
+    //physics.update(dt);
 
     physics.shotKeeper.update();
     document.getElementById("bull").innerHTML = "bullets: " + _shots.length;
@@ -915,7 +951,7 @@ function invaderToken(position, width, height, direction, speed, collided = fals
             /*y*/               this.hitbox().bottom() + this.height + 11),
             /*width:*/        5, 
             /*height:*/       10, 
-            /*direction:*/    new vector2d(1, 1),
+            /*direction:*/    new vector2d(0, 1),
             /*speed:   */     new vector2d(1, 125),
             /*collided:*/     false,
             /*color:*/        "orange");
@@ -953,44 +989,41 @@ function playerToken(position, width, height, direction, speed, /* BULL1->speed 
   this.update = function(dt) {
     // Variables tell what arrow keys are being pressed
     // canvas = document.getElementById("game-canvas");
-    let right = activeKeys[ArrowRight];
-    let left = activeKeys[ArrowLeft];
-    // Directions left gets 'closer' to zero while right moves 'away'
-    let leftWards = -1;
-    let rightWards = 1;
-
+    let rightKey = activeKeys[ArrowRight];
+    let leftKey = activeKeys[ArrowLeft];
 
     // Player token direction based on arrow keys
-    if (left && !right) {
+    if (leftKey && !rightKey) {
       holding = 'left';
-      this.direction.x = leftWards;
+      this.direction = left;
     }
-    if(!left && right) {
+    if(!leftKey && rightKey) {
       holding = 'right';
-      this.direction.x = rightWards;
+      this.direction = right;
     }
-    if(left && right) { // Special case: player holds both arrows
+    if(leftKey && rightKey) { // Special case: player holds both arrows
       if(holding == 'right') { // Was holding right first
         // movex = leftWards; // Choose left arbitrarily
-        this.direction.x = leftWards;
+        this.direction = left;
       }
       if(holding == 'left') { // Was holding left first
         // movex = rightWards; // Most recent is right, so go right
-        this.direction.x = rightwards;
+        this.direction = right;
       }
       if(holding == '') { // Edge case, pressed both at exact time, choose one
         holding = 'right';
         // movex = rightWards;
-        this.direction.x = rightwards; 
+        this.direction = right; 
       }
     }
-    if(!right && !left) {
+    if(!rightKey && !leftKey) {
       holding = ''; // Reset, player is not holding either
-      this.direction.x = 0;
+      // this.direction.x = 0;
+      this.direction = zero;
     }
 
     let velocity = this.direction.x * this.speed.x;
-    // (velocity = distance/time_passed) * time_passed * const =distance * const
+    // (direction = distance/time_passed) * time_passed * const =distance * const
     this.position.x += velocity * dt;
 
     if(this.hitbox().left() <= 0) { // Boundary (move no further)
@@ -999,7 +1032,7 @@ function playerToken(position, width, height, direction, speed, /* BULL1->speed 
     else if(this.hitbox().right() >= canvas.width) { // Boundary (move back)
       this.position.x = canvas.width - this.width/2; 
     }
-    else { // Move forward
+    else { // Move forward   
     }
   }
 
@@ -1011,7 +1044,7 @@ function playerToken(position, width, height, direction, speed, /* BULL1->speed 
       let bHeight = 4;
       // (x,y) displacement accomodates for token's dimensions
       // Shot originates from middle of token and travels up
-      // Negative velocity because player's bullets go up
+      // Negative direction because player's bullets go up
       // physics.shotKeeper.addShot(5, 10, "yellow", this.x + width/2, this.y - height/2, 
       // Bullet spawns just above the player token 
       // 
