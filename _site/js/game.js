@@ -67,16 +67,16 @@ const ArrowRight = 39;
 const ArrowDown  = 40;
 
 // The four cardinal directional vectors
-let up    = new vector2d(0, -1),
-    down  = new vector2d(0, 1),
-    left  = new vector2d(-1, 0),
-    right = new vector2d(1, 0),
-// 'zero' vector, token doesn't move
-    zero = new vector2d(0, 0);
+let up    = new vector2d( 0, -1),
+    down  = new vector2d( 0,  1),
+    left  = new vector2d(-1,  0),
+    right = new vector2d( 1,  0),
+
+    // 'zero' vector token doesn't move
+    zero = new vector2d(  0,  0);
 
 //BUG1 Keep track of frontmost player bullet's height
 let playerBH = 0;
-// let first = true;
 
 // Ensures game only starts every other click (start -> reset & stop -> start)
 var go = true;
@@ -226,19 +226,17 @@ var renderer = (function() { // Note: context = ctx for now, later, the 'context
 
     // Draw all game tokens
     gameArea.entities().forEach(function(entity) {
-      if(!entity.collided) { // Intact tokens only
-        if(entity instanceof playerToken) {
-          _drawPlayer(entity);
-          _drawRectOutline(entity.hitbox()); // for TESTing HITBOX
-        }
-        else if(entity instanceof invaderToken) {
-          _drawInvader(entity);
-          _drawRectOutline(entity.hitbox()); // for TESTing HITBOX
-        }
-        else { // Default, rectangular polygon
-          _drawRectangle(entity);
-          _drawRectOutline(entity.hitbox()); // for TESTing HITBOX
-        }
+      if(entity instanceof playerToken) {
+        _drawPlayer(entity);
+        _drawRectOutline(entity.hitbox()); // for TESTing HITBOX
+      }
+      else if(entity instanceof invaderToken) {
+        _drawInvader(entity);
+        _drawRectOutline(entity.hitbox()); // for TESTing HITBOX
+      }
+      else { // Default, rectangular polygon
+        _drawRectangle(entity);
+        _drawRectOutline(entity.hitbox()); // for TESTing HITBOX
       }
     });
 
@@ -283,7 +281,7 @@ var physics = (function () {
   // Is there a better way to define an object with properties? Because this 
   // function will not be used as a data type or anything
   function _shotKeeper() { // class in charge of keeping tabs on all bullets
-    this.addShot = function(position, width = 5, height = 15, direction, speed, collided  = false, color = "blue") {
+    this.addShot = function(position, width = 5, height = 15, direction, speed, color = "blue") {
       // Given where bullet should spawn (x, y) but need to center the bullet
       // TODO: Make bullet spawn without touching player, account for this 
       // Can possibly circumvent this by differentiating player and invader
@@ -298,10 +296,9 @@ var physics = (function () {
       this.height    = height;
       this.direction = direction;
       this.speed     = speed;
-      this.collided  = collided;
       this.color     = color;
      
-      gameArea.shots().push(new gameToken(this.position, this.width, this.height, this.direction, this.speed, this.collided, this.color));
+      gameArea.shots().push(new gameToken(this.position, this.width, this.height, this.direction, this.speed, this.color));
     }
 
     // Redefine clear/draw to render all the bullets. Probably though can use the
@@ -317,7 +314,8 @@ var physics = (function () {
       gameArea.shots().forEach(function(shot) {
         // Check bounds
         if(shot.hitbox().top() > canvas.height || shot.hitbox().bottom() < 0) {
-          gameArea.shots().splice(shot, 1);
+          // gameArea.shots().splice(shot, 1);
+          gameArea.willDelete().push(shot);
         }
         // **********************************************************************
         else { // advance
@@ -329,24 +327,29 @@ var physics = (function () {
     }
 
     this.collisionCheck = function(token) {
-      // STANDBY3: Only pay attention to front row for now
       // let thisVader = invadarr.a[1][index]; // get value of invader in question
 
       gameArea.shots().forEach(function(shot) {
         //let collides = intersect(shot, token); // Way to fix this (?)
         if (shot.hitbox().intersect(token.hitbox())) {
-          shot.collided = true;
+          //shot.collided = true;
           // Bullet and invader cancel each other
           // T0D0 ###############################################################
           // [Bullet => Invader intact?]
           // if(!token.collided) { 
           // if(!_inv._getCollided(index)) {
-          if(!token.collided) {
-            gameArea.shots().splice(shot, 1); // Intact token disappears along with bullet
-            // [Bullet => collision]
-            // invadarr.a[1][index].collided = true;
-            token.collided = true;
-          }
+          // if(!token.collided) {
+          //gameArea.shots().splice(shot, 1); // Intact token disappears along with bullet
+          // [Bullet => collision]
+          // invadarr.a[1][index].collided = true;
+          //gameArea.entities.splice()
+          //token.collided = true;
+          // }
+          //gameArea.invadarr().a.splice()
+          //invadarr.a[]
+
+          gameArea.willDelete().push(shot);
+          gameArea.willDelete().push(token);
         }
       });
     }
@@ -365,6 +368,11 @@ var physics = (function () {
 // ████████████████████████████████████████████████████████████████████████████
 // Entirety of game's 'screen', where all the visible game pieces are
 var gameArea = (function() { // Singleton
+  // Returns true if a token isn't marked for deletion, false if it is GOBA
+  function notIncluded(token) {
+    return !_willDelete.includes(token);
+  }
+
   // variables
   // game token variables:
   var _entities = []; // Holds all (generic) game tokens used in the game
@@ -372,10 +380,10 @@ var gameArea = (function() { // Singleton
 
   // Manages invaders TODO: Any way to remove all invader array methods from invadarr? feel like gameArea should return values for it, then there wouldn't need to be as much nesting (clarity might decrease if not done right though)
   let _invadarr = (function() { // 2d invader array
-    //  a: {},  // Associative array, doesn't have built-in methods (ex. length())
-    let a = [],
-        f = [], // Invaders in the frontline (those allowed to shoot) 
-        r = 0;  // total rows in the 2d array
+    //  _a: {},  // Associative array, doesn't have built-in methods (ex. length())
+    let _a = [],
+        f  = [], // Invaders in the frontline (those allowed to shoot) 
+        r  = 0;  // total rows in the 2d array
 
     let _invaderCount, _invaderWidth, _invaderHeight,
         _gapSpace,
@@ -383,13 +391,14 @@ var gameArea = (function() { // Singleton
 
     let frameNum = 0; // Marks the current frame you're on
 
-    // Make invaders wait one 'turn' (frameRate) before moving again
+    // Make invaders wait one 'turn' (frameRate) at game edges before moving again
     let waitAtRight = false;
     let waitAtLeft = false;
 
+    // methods
     function _totCols(rowIndex) { // Total number of columns for given row
       if(rowIndex < this.r) {
-        return this.a[rowIndex].length;
+        return this._a[rowIndex].length;
       }
       else {
         return false; // Out of bounds
@@ -398,12 +407,12 @@ var gameArea = (function() { // Singleton
 
     function _addRows(numOf) { // Add specific number of rows
       for(let i = 0; i < numOf; i ++) {
-        a[r ++] = [];
+        _a[r ++] = [];
       }
     }
 
     function _clear() {
-      a = []; // Reset entire array content
+      _a = []; // Reset entire array content
       r = 0; // No rows on empty array
     }
 
@@ -442,7 +451,7 @@ var gameArea = (function() { // Singleton
       // Populate with invaderCount number of invaders
       for(let i = 0; i < invaderRows; ++ i) {
         for(let j = 0; j < invaderCount; ++ j) {
-          a[i].push(
+          _a[i].push(
                                   new invaderToken(
                                     /*position*/   new vector2d (drawAt, y),
                                     /*width:*/     this._invaderWidth, 
@@ -450,10 +459,9 @@ var gameArea = (function() { // Singleton
                                     /*direcion:*/  this._direction,
                                     /* NOTE: right now they all share the same speed vector2d, so changing this speed vector will alter the speeds of every invader (all js arguments passed by reference) (are they?) */
                                     /*speed:   */  this._speed,
-                                    /*collided:*/  false,
                                     /*color:*/     "green",
                                     /*fireRate*/   1));
-          gameArea.entities().push(a[i][j]);
+          gameArea.entities().push(_a[i][j]);
           drawAt += next ;
         }
         drawAt = edgeSpace;
@@ -468,7 +476,7 @@ var gameArea = (function() { // Singleton
     function _reset() {
       // Set up frontline invaders
       f = []; // erase previous values
-      f = a[r - 1]; // Reset frontline to frontmost array
+      f = _a[r - 1]; // Reset frontline to frontmost array
     }
 
     function _update(dt = 0) {
@@ -480,10 +488,9 @@ var gameArea = (function() { // Singleton
         let vRightmost = gameArea.invaderFieldHitbox().right();
 
         if(waitAtRight || waitAtLeft) { // move downward for one turn after the frame's cooldown (however long a 'frame'/blink lasts)
-          a.forEach(function(row) {
+          _a.forEach(function(row) {
             row.forEach(function(invader) {
               // invader.position.y += 15;
-              //TODO: find a way to 'remember' what direction x was heading in, so that way can head the opposite way after heading downwards for one 'step' (this is in regards to trying to find a way to update each invader using their own respective speeds and directions). Also, instead of directly incrementing the y positioning over here, generalize it so that only the direction vector gets updated then the position changes later on using position = speed * direction * dt (the change in directions from moving through the x axis to now only moving through the y axis should suffice so that a general equation like this will accurately update the positioning)
               invader.direction = down;
               //this._direction = down; // BUG, for some reason this can't be accessed nor used to add to invader position even though it's scope isn't limited here
               invader.position = vector2dAdd(invader.position, vectorTimesScalar(invader.direction, 20)); // BUG
@@ -515,7 +522,7 @@ var gameArea = (function() { // Singleton
 
             // Move all invaders distance needed for rightmost invader to reach
             // canvas edge (and then move opposite direction in the next instance)
-            a.forEach(function(row) {
+            _a.forEach(function(row) {
               row.forEach(function(invader) {
                 invader.position.x += toRightBound;
               });
@@ -529,7 +536,7 @@ var gameArea = (function() { // Singleton
             // make vaders touch left bound, same as distance of leftmost to bound
             let toLeftBound = 0 - vLeftmost;
 
-            a.forEach(function(row) {
+            _a.forEach(function(row) {
               row.forEach(function(invader) { // right boundary
                 invader.position.x += toLeftBound;
               });
@@ -538,7 +545,7 @@ var gameArea = (function() { // Singleton
             waitAtLeft = true;
           }
 
-          else a.forEach(function(row) { // default, just move
+          else _a.forEach(function(row) { // default, just move
             row.forEach(function(invader) {
               invader.position.x += dist;
             });
@@ -557,16 +564,31 @@ var gameArea = (function() { // Singleton
       // }
     }
 
-    return {// accessors
-      totCols: _totCols, // method accessors
-      addRows: _addRows,
-      clear:   _clear,
-      setup:   _setup,
-      reset:   _reset,
-      update:  _update,
-      shoot:   _shoot,
+    // Can't update invader array from the outside, in the meantime, have to do it from within GOBA
+    function _deletion() {
+      if(!_willDelete) { // nothing to delete
+        return;
+      }
 
-      a:             function() { return a; }, // data accessors 
+      for(let rw = 0; rw < _a.length; ++ rw) {
+        _a[rw] = _a[rw].filter(notIncluded);
+      }
+
+
+      f = f.filter(notIncluded);
+    }
+
+    return {// accessors
+      totCols:  _totCols, // method accessors
+      addRows:  _addRows,
+      clear:    _clear,
+      setup:    _setup,
+      reset:    _reset,
+      update:   _update,
+      shoot:    _shoot,
+      deletion: _deletion,
+
+      a:             function() { return _a; }, // data accessors 
       totRows:       function() { return r; },
       totFront:      function() { return f; },
       invaderCount:  function() { return _invaderCount;  },
@@ -582,6 +604,7 @@ var gameArea = (function() { // Singleton
 
   let _invaderFieldHitbox = new rectangle(0, 0, 0, 0);
   let _shots  =  []; // Holds all bullets
+  let _willDelete = []; // Holds all tokens marked for deletion
 
   // gameArea variables:
   let startLoop = false; // Starts/stops gameloop
@@ -655,12 +678,7 @@ var gameArea = (function() { // Singleton
     // Calculate the hitbox surrounding every invader
     _invaderFieldHitbox = _invadarr.a().reduce(function(total, row) {
       return rectUnion(total, row.reduce(function(rowTotal, inv) {
-        if(!inv.collided) {
-          return rectUnion(rowTotal, inv.hitbox());
-        }
-        else {
-          return rowTotal;
-        }
+        return rectUnion(rowTotal, inv.hitbox());
       }, undefined));
     }, undefined);
 
@@ -668,13 +686,13 @@ var gameArea = (function() { // Singleton
 
     // Will be able to remove once physics is implemented
     _player1.update(dt); // Time should only be observable on gameArea
-    _player1.shoot(); // Update shotkeeper with any bullets player shot
+    _invadarr.update(dt);
 
+    _deletion(); // Remove dead tokens
+
+    _player1.shoot(); // Update shotkeeper with any bullets player shot
     //WIP: Gonna edit invaders to move according to time passed
     // _inv.update(dt);
-    //_inv.shoot();
-    // Will be able to remove once physics is implemented
-    _invadarr.update(dt);
     _invadarr.shoot();
 
     //physics.update(dt);
@@ -688,7 +706,7 @@ var gameArea = (function() { // Singleton
     // _player1.intersect(); 
     // [Bullets => iterate invaders]
 
-    // Invader collision check (only first row for now)
+    // Invader collision check
     //PLACEMAT
     _invadarr.a().forEach(function(row, rind) { // row index
       row.forEach(function(invader, cind) { // column index
@@ -706,17 +724,37 @@ var gameArea = (function() { // Singleton
 
     // [ 4 ] DRAW
     renderer.render();
-    framesPerSecond(); // Just a display //BUG1 - Displaying bullets for now
-    // TODO: Reset timeStamp(?) Not sure if possible
+    framesPerSecond(); // Just a display, doesn't contribute to game 
 
     // Keep requesting further iterations of 'gameLoop' to animate game
-    // TODO: Reset timeStamp(?)
+    // TODO: Reset timeStamp(?) Not sure if possible
     window.requestAnimationFrame(_gameLoop);
   }
 
-  //function _clear() { // Clears the whole canvas
-  //  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  //}
+  function _deletion() { // remove dead tokens from the game
+    if(!_willDelete) { // nothing to delete
+      return;
+    }
+    // GOBA: made global for now, so both gameArea and invader array have access to this function
+    // Returns true if a token isn't marked for deletion, false if it is
+    // function notIncluded(token) {
+    //   return !_willDelete.includes(token);
+    // }
+
+    // only let unmarked tokens filter through (tokens not in _willDelete arr)
+    _entities = _entities.filter(notIncluded);
+    // bug: can't modify 'a' by calling it like this (invalid assignment)
+    //_invadarr.a()  = _invadarr.a().filter(notIncluded); //GOBA <- invalid
+    _invadarr.deletion();
+
+    _shots = _shots.filter(notIncluded);
+
+    // if(_willDelete.includes(_player1)) { // TODO: game over
+    //   _player1 = undefined;
+    // }
+
+    _willDelete = []; // clear out the array
+  } 
 
   function _reset() {
     // All settings and game components are at their starting values
@@ -745,7 +783,8 @@ var gameArea = (function() { // Singleton
     player1:            function() { return _player1;  },
     invadarr:           function() { return _invadarr; },
     invaderFieldHitbox: function() { return _invaderFieldHitbox; },
-    shots:              function() { return _shots;    }
+    shots:              function() { return _shots;    },
+    willDelete:         function() { return _willDelete; }
   };
 })();
 // ████████████████████████████████████████████████████████████████████████████
@@ -846,7 +885,7 @@ function rectUnion(r1, r2) {
 }
 
 // Generic game token
-function gameToken(position, width = 50, height = 70, direction, speed, collided = false, color = "blue") {
+function gameToken(position, width = 50, height = 70, direction, speed, color = "blue") {
   this.position   = position; // position vector (2d)
   this.width      = width;
   this.height     = height;
@@ -854,7 +893,6 @@ function gameToken(position, width = 50, height = 70, direction, speed, collided
   this.direction  = direction; // direction vector (2d)
   this.speed      = speed;     // speed vector (2d)
   // Set collision boolean
-  this.collided   = collided;
   this.color      = color;
 
   this.setup = function() { // Stub
@@ -889,12 +927,11 @@ function gameToken(position, width = 50, height = 70, direction, speed, collided
   }
 }
 
-function invaderToken(position, width, height, direction, speed, collided = false, color = "blue", fireRate =  1 /*BUG1 fireRate*/) { //BULL1 
+function invaderToken(position, width, height, direction, speed, color = "blue", fireRate =  1 /*BUG1 fireRate*/) { //BULL1 
   // Ref: javascript function call():
   // call gameToken with the instance that is 'this' invaderToken object, to
   // pass on the arguments invaderToken has in common with gameToken
-  gameToken.call(this, position, width, height, direction, speed, collided,
-    color); 
+  gameToken.call(this, position, width, height, direction, speed, color); 
   // Inheritance:
   // prototype method lets us add specified properties and methods to the 
   // object that calls it. 
@@ -927,7 +964,6 @@ function invaderToken(position, width, height, direction, speed, collided = fals
             /*height:*/       10, 
             /*direction:*/    new vector2d(0, 1),
             /*speed:   */     new vector2d(1, 125),
-            /*collided:*/     false,
             /*color:*/        "orange");
         }
       //}
@@ -936,9 +972,9 @@ function invaderToken(position, width, height, direction, speed, collided = fals
 
 // Optional: With inheritance, can add new properties at the end of 'fireRate'
 // Made into 'class' in case multiplayer gets established later
-function playerToken(position, width, height, direction, speed, /* BULL1->speed = 125,0*/ collided = false, color = "red", fireRate = .25) {
+function playerToken(position, width, height, direction, speed, /* BULL1->speed = 125,0*/color = "red", fireRate = .25) {
   // playerToken inherits from more generic gameToken class
-  gameToken.call(this, position, width, height, direction, speed, collided, color);
+  gameToken.call(this, position, width, height, direction, speed, color);
   this.prototype = Object.create(gameToken.prototype);
 
   // this.position  = position;
@@ -946,7 +982,6 @@ function playerToken(position, width, height, direction, speed, /* BULL1->speed 
   // this.height    = height;
   // this.direction = direction;
   // this.speed     = speed;
-  // this.collided  = collided;
   // this.color     = color;
   this.fireRate  = fireRate;
 
@@ -1028,14 +1063,14 @@ function playerToken(position, width, height, direction, speed, /* BULL1->speed 
       //   *(x, y) Center   | Token height 
       // █████              |
       // Code below ensures bullet spawns 1 unit above top of player's hitbox
-      physics.shotKeeper.addShot(/*position*/      new vector2d(
+      physics.shotKeeper.addShot(
+                         /*position*/      new vector2d(
                                             this.position.x,
                                             this.hitbox().top() - bHeight - 1),
                          /*width:*/        5, 
                          /*height:*/       bHeight,
                          /*direction:*/    new vector2d(0, -1),
                          /*speed:*/        new vector2d(0, 500),
-                         /*collided:*/     false,
                          /*color*/         "yellow");
     }
   }
