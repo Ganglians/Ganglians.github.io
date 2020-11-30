@@ -330,24 +330,7 @@ var physics = (function () {
       // let thisVader = invadarr.a[1][index]; // get value of invader in question
 
       gameArea.shots().forEach(function(shot) {
-        //let collides = intersect(shot, token); // Way to fix this (?)
         if (shot.hitbox().intersect(token.hitbox())) {
-          //shot.collided = true;
-          // Bullet and invader cancel each other
-          // T0D0 ###############################################################
-          // [Bullet => Invader intact?]
-          // if(!token.collided) { 
-          // if(!_inv._getCollided(index)) {
-          // if(!token.collided) {
-          //gameArea.shots().splice(shot, 1); // Intact token disappears along with bullet
-          // [Bullet => collision]
-          // invadarr.a[1][index].collided = true;
-          //gameArea.entities.splice()
-          //token.collided = true;
-          // }
-          //gameArea.invadarr().a.splice()
-          //invadarr.a[]
-
           gameArea.willDelete().push(shot);
           gameArea.willDelete().push(token);
         }
@@ -368,11 +351,6 @@ var physics = (function () {
 // ████████████████████████████████████████████████████████████████████████████
 // Entirety of game's 'screen', where all the visible game pieces are
 var gameArea = (function() { // Singleton
-  // Returns true if a token isn't marked for deletion, false if it is GOBA
-  function notIncluded(token) {
-    return !_willDelete.includes(token);
-  }
-
   // variables
   // game token variables:
   var _entities = []; // Holds all (generic) game tokens used in the game
@@ -566,7 +544,7 @@ var gameArea = (function() { // Singleton
 
     // Can't update invader array from the outside, in the meantime, have to do it from within GOBA
     function _deletion() {
-      if(!_willDelete) { // nothing to delete
+      if(_willDelete.length == 0) { // nothing to delete
         return;
       }
 
@@ -609,6 +587,11 @@ var gameArea = (function() { // Singleton
   // gameArea variables:
   let startLoop = false; // Starts/stops gameloop
   // --------------------------------------------------------------------------
+  // Returns true if a token isn't marked for deletion, false if it is GOBA
+  function notIncluded(token) {
+    return !_willDelete.includes(token);
+  }
+
   function _tog() {
     //BUG1
     if (go == true) { // Initiate game    
@@ -689,7 +672,11 @@ var gameArea = (function() { // Singleton
     _invadarr.update(dt);
 
     _deletion(); // Remove dead tokens
+    _willDelete = []; // clear up the array for next instance
 
+    //_cleanup(_entities); // a WiP
+    //_cleanup(_shots); // a WiP
+    // _cleanup(_invadarr.a); // recall this one is 2D
     _player1.shoot(); // Update shotkeeper with any bullets player shot
     //WIP: Gonna edit invaders to move according to time passed
     // _inv.update(dt);
@@ -732,7 +719,7 @@ var gameArea = (function() { // Singleton
   }
 
   function _deletion() { // remove dead tokens from the game
-    if(!_willDelete) { // nothing to delete
+    if(_willDelete.length == 0) { // nothing to delete
       return;
     }
     // GOBA: made global for now, so both gameArea and invader array have access to this function
@@ -755,6 +742,21 @@ var gameArea = (function() { // Singleton
 
     _willDelete = []; // clear out the array
   } 
+
+  // A WiP, different, more generalized approach (not working atm)
+  function _cleanup(elements) { // removes dead tokens
+    if(_willDelete.length == 0) {
+      return; // nothing to clean up from the array
+    }
+
+    function wontDelete(token) {
+      // returns true if token isn't marked for deletion (i.e. if token isn't in '_willDelete' array)
+      return !_willDelete.includes(token);
+    }
+
+    // Only let token through the filter if it's not marked for deletion
+    elements = elements.filter(wontDelete);
+  }
 
   function _reset() {
     // All settings and game components are at their starting values
