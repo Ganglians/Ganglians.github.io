@@ -34,7 +34,7 @@
   z-index: 1;
   background-color: rgba(0, 0, 0, 0);
   /*Transparent background*/
-  background-image: image-url("bg_mountains.svg");
+  background-image: url("/images/bg_mountains.svg");
   background-repeat: no-repeat;
   /*Can stretch bg image due to adding 'preserveAspectRatio="none"' line to it*/
   background-size: 105vw 20vh;
