@@ -73,7 +73,7 @@ let up    = new vector2d( 0, -1),
     right = new vector2d( 1,  0),
 
     // 'zero' vector token doesn't move
-    zero = new vector2d(  0,  0);
+    idle = new vector2d(  0,  0);
 
 //BUG1 Keep track of frontmost player bullet's height
 let playerBH = 0;
@@ -273,8 +273,8 @@ var physics = (function () {
   function _update(dt = 0) { // TODO: time blind (gameArea has time only)
     gameArea.entities().forEach(function(entity) {
       // TODO: Need to implement both X and Y directions (only use one of those atm)
-      entity.x += entity.direction.x * entity.speed.x * dt;
-      entity.y += entity.direction.y * entity.speed.y * dt;
+      entity.position.x += entity.direction.x * entity.speed.x * dt;
+      entity.position.y += entity.direction.y * entity.speed.y * dt;
     });
   }
 
@@ -354,232 +354,10 @@ var gameArea = (function() { // Singleton
   // variables
   // game token variables:
   var _entities = []; // Holds all (generic) game tokens used in the game
-  var _player1 = new playerToken(new vector2d(0, 0), 70, 70, new vector2d(1, 0), new vector2d(125, 5)); //5 isn't active atm since direction is x axis only
+  var _player1 = new playerToken(new vector2d(0, 0), 70, 70, idle, new vector2d(125, 5)); //5 isn't active atm since direction is x axis only
 
   // Manages invaders TODO: Any way to remove all invader array methods from invadarr? feel like gameArea should return values for it, then there wouldn't need to be as much nesting (clarity might decrease if not done right though)
-  let _invadarr = (function() { // 2d invader array
-    //  _a: {},  // Associative array, doesn't have built-in methods (ex. length())
-    let _a = [],
-        f  = [], // Invaders in the frontline (those allowed to shoot) 
-        r  = 0;  // total rows in the 2d array
-
-    let _invaderCount, _invaderWidth, _invaderHeight,
-        _gapSpace,
-        _direction, _frameUpper, _invaderRows;
-
-    let frameNum = 0; // Marks the current frame you're on
-
-    // Make invaders wait one 'turn' (frameRate) at game edges before moving again
-    let waitAtRight = false;
-    let waitAtLeft = false;
-
-    // methods
-    function _totCols(rowIndex) { // Total number of columns for given row
-      if(rowIndex < this.r) {
-        return this._a[rowIndex].length;
-      }
-      else {
-        return false; // Out of bounds
-      }
-    }
-
-    function _addRows(numOf) { // Add specific number of rows
-      for(let i = 0; i < numOf; i ++) {
-        _a[r ++] = [];
-      }
-    }
-
-    function _clear() {
-      _a = []; // Reset entire array content
-      r = 0; // No rows on empty array
-    }
-
-    // Initialize the properties of the array of invaders
-    function _setup(invaderCount = 3, invaderWidth = 80, invaderHeight = 20, gapSpace = 30, direction = right, speed, frameRate = 50 /* makes invader movement blocky (every 50 unit 'seconds', move for 1 unit 'second' */, invaderRows = 2) { 
-      this._invaderCount  = invaderCount;
-      this._invaderWidth  = invaderWidth;
-      this._invaderHeight = invaderHeight;
-      this._gapSpace      = gapSpace;
-      this._direction     = direction;
-      this._speed         = new vector2d(40, 25); // arbitrary for now
-      this._frameUpper    = frameRate;
-      this._invaderRows   = invaderRows;
-
-      // Make sure invader array is clear (sanity check mostly)
-      _clear();
-
-      let frameNum = this._frameUpper; // Cooldown time
-      //
-      // SETUP AND SPACING
-      // Relative space between each invader
-      // x coordinate of next invader's left side, count for previous invader's
-      // width and add the gap space
-      let next = this._invaderWidth + this._gapSpace;
-      // Space between leftmost & rightmost invader boundaries and the canvas 
-      // boundary
-      let edgeSpace = (canvas.width - this._invaderCount * (this._invaderWidth + this._gapSpace))/2 + this._gapSpace;
-      // Where to begin drawing the invaders centered in the canvas' x axis
-      let drawAt = edgeSpace;  
-      // GRID
-      let y = this._invaderHeight/2; // initial y positioning (at canvas boundary)
-      let rowSpace = 100; // space between each row
-
-      // EACH INDIVIDUAL INVADER
-      _addRows(invaderRows);
-      // Populate with invaderCount number of invaders
-      for(let i = 0; i < invaderRows; ++ i) {
-        for(let j = 0; j < invaderCount; ++ j) {
-          _a[i].push(
-                                  new invaderToken(
-                                    /*position*/   new vector2d (drawAt, y),
-                                    /*width:*/     this._invaderWidth, 
-                                    /*height:*/    this._invaderHeight,  
-                                    /*direcion:*/  this._direction,
-                                    /* NOTE: right now they all share the same speed vector2d, so changing this speed vector will alter the speeds of every invader (all js arguments passed by reference) (are they?) */
-                                    /*speed:   */  this._speed,
-                                    /*color:*/     "green",
-                                    /*fireRate*/   1));
-          gameArea.entities().push(_a[i][j]);
-          drawAt += next ;
-        }
-        drawAt = edgeSpace;
-        y += rowSpace; // GRID
-      }
-      this.reset(); // Set (or reset, depending) frontliners array
-
-      waitAtRight = false;
-      waitAtLeft =  false;
-    }
-
-    function _reset() {
-      // Set up frontline invaders
-      f = []; // erase previous values
-      f = _a[r - 1]; // Reset frontline to frontmost array
-    }
-
-    function _update(dt = 0) {
-      // update positioning
-      if (frameNum -- <= 0) { // causes a blink/flicker effect, they're only allowed to move once, when the frameNum ends its cooldown
-        frameNum = this._frameUpper; // Start cooldown time again
-
-        let vLeftmost =  gameArea.invaderFieldHitbox().left();
-        let vRightmost = gameArea.invaderFieldHitbox().right();
-
-        if(waitAtRight || waitAtLeft) { // move downward for one turn after the frame's cooldown (however long a 'frame'/blink lasts)
-          _a.forEach(function(row) {
-            row.forEach(function(invader) {
-              // invader.position.y += 15;
-              invader.direction = down;
-              //this._direction = down; // BUG, for some reason this can't be accessed nor used to add to invader position even though it's scope isn't limited here
-              invader.position = vector2dAdd(invader.position, vectorTimesScalar(invader.direction, 20)); // BUG
-            });
-          });
-          if(waitAtRight) {
-            waitAtRight = false;
-            //invader.direction = left;
-            this._direction = left; 
-          }
-          else {
-            waitAtLeft = false;
-            //invader.direction = right;
-            this._direction = right;
-          }
-        }
-        else {
-          // Check left and right vader boundaries
-          let dist  =  this._direction.x * this._speed.x; //* dt; //TODO: same movement w/ seconds
-          // TODO: shouldn't you only have to check this once? after each invader is moved? instead of comparing the hitbox each time a single invader moves maybe.. then again this could result in some of them going over the boundary, but that's only when they're not moving at same speed i think...
-          let distR = vRightmost + dist;
-          let distL = vLeftmost  + dist;
-
-          // Movement based on canvas boundary collisions
-          // Right boundary of canvas
-          if(distR > canvas.width) { 
-            // Calculate distance needed to reach rightmost canvas edge
-            let toRightBound = canvas.width - vRightmost;
-
-            // Move all invaders distance needed for rightmost invader to reach
-            // canvas edge (and then move opposite direction in the next instance)
-            _a.forEach(function(row) {
-              row.forEach(function(invader) {
-                invader.position.x += toRightBound;
-              });
-            });
-
-            waitAtRight = true; // invaders wait at corner for two 'turns' (frameRate)
-          }
-
-          // Left boundary of canvas
-          else if(distL <= 0) { // left boundary, change direction  
-            // make vaders touch left bound, same as distance of leftmost to bound
-            let toLeftBound = 0 - vLeftmost;
-
-            _a.forEach(function(row) {
-              row.forEach(function(invader) { // right boundary
-                invader.position.x += toLeftBound;
-              });
-            });
-
-            waitAtLeft = true;
-          }
-
-          else _a.forEach(function(row) { // default, just move
-            row.forEach(function(invader) {
-              invader.position.x += dist;
-            });
-          });
-        }
-      }
-    }
-
-    function _shoot() {
-      // if(!this.wait) {
-      //   f.forEach(function(frontliner) { // Frontmost invaders will shoot
-      //     if(!frontliner.collided) {
-      //         frontliner.shoot();           
-      //     }
-      //   });
-      // }
-    }
-
-    // Can't update invader array from the outside, in the meantime, have to do it from within GOBA
-    function _deletion() {
-      if(_willDelete.length == 0) { // nothing to delete
-        return;
-      }
-
-      for(let rw = 0; rw < _a.length; ++ rw) {
-        _a[rw] = _a[rw].filter(notIncluded);
-      }
-
-
-      f = f.filter(notIncluded);
-    }
-
-    return {// accessors
-      totCols:  _totCols, // method accessors
-      addRows:  _addRows,
-      clear:    _clear,
-      setup:    _setup,
-      reset:    _reset,
-      update:   _update,
-      shoot:    _shoot,
-      deletion: _deletion,
-
-      a:             function() { return _a; }, // data accessors 
-      totRows:       function() { return r; },
-      totFront:      function() { return f; },
-      invaderCount:  function() { return _invaderCount;  },
-      invaderWidth:  function() { return _invaderWidth;  },
-      invaderHeight: function() { return _invaderHeight; },
-      gapSpace:      function() { return _gapSpace;      },
-      direction:     function() { return _direction;     },
-      speed:         function() { return _speed;         },
-      frameUpper:    function() { return _frameUpper;    },
-      invaderRows:   function() { return _invaderRows;   }
-    };
-  })();
-
+  let _invadarr = new invaderArray();
   let _invaderFieldHitbox = new rectangle(0, 0, 0, 0);
   let _shots  =  []; // Holds all bullets
   let _willDelete = []; // Holds all tokens marked for deletion
@@ -587,11 +365,6 @@ var gameArea = (function() { // Singleton
   // gameArea variables:
   let startLoop = false; // Starts/stops gameloop
   // --------------------------------------------------------------------------
-  // Returns true if a token isn't marked for deletion, false if it is GOBA
-  function notIncluded(token) {
-    return !_willDelete.includes(token);
-  }
-
   function _tog() {
     //BUG1
     if (go == true) { // Initiate game    
@@ -633,12 +406,10 @@ var gameArea = (function() { // Singleton
     //RELOCATION
     _entities.push(_player1);
 
-    // Set up initial invader rows (use from stack if previous game played 
-    // already)
     _invadarr.setup();
     // Initialize structure that displays bullets (clears array)
     //shotKeeper.setup();
-    // LOOP
+
     // Initiate gameLoop, request function gives the browser some air while 
     // looping and time the game loop to be in-sync with the browser repaint
     startLoop = true;
@@ -650,7 +421,7 @@ var gameArea = (function() { // Singleton
       return;
     }
     // [ 1 ] UPDATE
-    // dt = delta t. the difference in time (seconds) between this and last frame
+    //delta t. the difference in time (seconds) between this & last frame
     dt = (timeStamp - oldTimeStamp)/1000;
     dt = Math.min(0.1, dt);
     oldTimeStamp  = timeStamp;
@@ -659,7 +430,7 @@ var gameArea = (function() { // Singleton
     fps = Math.round(1/dt);
 
     // Calculate the hitbox surrounding every invader
-    _invaderFieldHitbox = _invadarr.a().reduce(function(total, row) {
+    _invaderFieldHitbox = _invadarr.a.reduce(function(total, row) {
       return rectUnion(total, row.reduce(function(rowTotal, inv) {
         return rectUnion(rowTotal, inv.hitbox());
       }, undefined));
@@ -671,12 +442,10 @@ var gameArea = (function() { // Singleton
     _player1.update(dt); // Time should only be observable on gameArea
     _invadarr.update(dt);
 
-    _deletion(); // Remove dead tokens
+    _cleanup(); // Remove dead tokens
     _willDelete = []; // clear up the array for next instance
 
-    //_cleanup(_entities); // a WiP
-    //_cleanup(_shots); // a WiP
-    // _cleanup(_invadarr.a); // recall this one is 2D
+    // attacks
     _player1.shoot(); // Update shotkeeper with any bullets player shot
     //WIP: Gonna edit invaders to move according to time passed
     // _inv.update(dt);
@@ -694,8 +463,7 @@ var gameArea = (function() { // Singleton
     // [Bullets => iterate invaders]
 
     // Invader collision check
-    //PLACEMAT
-    _invadarr.a().forEach(function(row, rind) { // row index
+    _invadarr.a.forEach(function(row, rind) { // row index
       row.forEach(function(invader, cind) { // column index
         physics.shotKeeper.collisionCheck(invader);
         // WIP
@@ -706,10 +474,10 @@ var gameArea = (function() { // Singleton
       });
     });
 
-    // [ 3 ] CLEAR
+    // [ 3 ] CLEAR (CANVAS)
     renderer.clear();
 
-    // [ 4 ] DRAW
+    // [ 4 ] DRAW  (CANVAS)
     renderer.render();
     framesPerSecond(); // Just a display, doesn't contribute to game 
 
@@ -718,45 +486,24 @@ var gameArea = (function() { // Singleton
     window.requestAnimationFrame(_gameLoop);
   }
 
-  function _deletion() { // remove dead tokens from the game
+  function _cleanup() { // remove dead tokens from the game
     if(_willDelete.length == 0) { // nothing to delete
       return;
     }
-    // GOBA: made global for now, so both gameArea and invader array have access to this function
-    // Returns true if a token isn't marked for deletion, false if it is
-    // function notIncluded(token) {
-    //   return !_willDelete.includes(token);
-    // }
 
+    // Returns true if a token isn't marked for deletion, false if it is
+    function notIncluded(token) {
+      return !_willDelete.includes(token);
+    }
     // only let unmarked tokens filter through (tokens not in _willDelete arr)
     _entities = _entities.filter(notIncluded);
-    // bug: can't modify 'a' by calling it like this (invalid assignment)
-    //_invadarr.a()  = _invadarr.a().filter(notIncluded); //GOBA <- invalid
-    _invadarr.deletion();
+    _invadarr.cleanup(_willDelete);
 
     _shots = _shots.filter(notIncluded);
-
     // if(_willDelete.includes(_player1)) { // TODO: game over
     //   _player1 = undefined;
     // }
-
-    _willDelete = []; // clear out the array
   } 
-
-  // A WiP, different, more generalized approach (not working atm)
-  function _cleanup(elements) { // removes dead tokens
-    if(_willDelete.length == 0) {
-      return; // nothing to clean up from the array
-    }
-
-    function wontDelete(token) {
-      // returns true if token isn't marked for deletion (i.e. if token isn't in '_willDelete' array)
-      return !_willDelete.includes(token);
-    }
-
-    // Only let token through the filter if it's not marked for deletion
-    elements = elements.filter(wontDelete);
-  }
 
   function _reset() {
     // All settings and game components are at their starting values
@@ -777,7 +524,6 @@ var gameArea = (function() { // Singleton
     tog:      _tog,
     start:    _start,
     gameLoop: _gameLoop,
-    //clear:    _clear,
     reset:    _reset,
 
     // data accessors:
@@ -1030,20 +776,19 @@ function playerToken(position, width, height, direction, speed, /* BULL1->speed 
     if(!rightKey && !leftKey) {
       holding = ''; // Reset, player is not holding either
       // this.direction.x = 0;
-      this.direction = zero;
+      this.direction = idle;
     }
 
-    let velocity = this.direction.x * this.speed.x;
-    // (direction = distance/time_passed) * time_passed * const =distance * const
-    this.position.x += velocity * dt;
-
-    if(this.hitbox().left() <= 0) { // Boundary (move no further)
+    if(this.hitbox().left() < 0) { // Boundary (move no further)
       this.position.x = this.width/2;
     }
-    else if(this.hitbox().right() >= canvas.width) { // Boundary (move back)
+    else if(this.hitbox().right() > canvas.width) { // Boundary (move back)
       this.position.x = canvas.width - this.width/2; 
     }
     else { // Move forward   
+      let velocity = this.direction.x * this.speed.x;
+      // (direction=distance/time_passed) *time_passed *const =distance *const
+      this.position.x += velocity * dt;
     }
   }
 
@@ -1068,12 +813,204 @@ function playerToken(position, width, height, direction, speed, /* BULL1->speed 
       physics.shotKeeper.addShot(
                          /*position*/      new vector2d(
                                             this.position.x,
-                                            this.hitbox().top() - bHeight - 1),
+                                            this.hitbox().top() - bHeight - 1
+                                           ),
                          /*width:*/        5, 
                          /*height:*/       bHeight,
                          /*direction:*/    new vector2d(0, -1),
                          /*speed:*/        new vector2d(0, 500),
                          /*color*/         "yellow");
     }
+  }
+}
+
+function invaderArray() { // 2d invader array
+  //  a: {},  // Associative array, doesn't have built-in methods (ex. length())
+  this.a = [];
+  this.f = []; // Invaders in the frontline (those allowed to shoot) 
+  let r = 0;  // total rows in the 2d array
+
+  let invaderCount, invaderWidth, invaderHeight,
+      gapSpace,
+      direction, frameUpper, invaderRows;
+
+  let frameNum = 0; // Marks the current frame you're on
+
+  // Make invaders wait one 'turn' (frameRate) at game edges before moving again
+  let waitAtRight = false;
+  let waitAtLeft = false;
+
+  // methods
+  this.addRows = function(numOf) { // Add specific number of rows
+    for(let i = 0; i < numOf; i ++) {
+      this.a[r ++] = [];
+    }
+  }
+
+  this.clear = function() {
+    this.a = []; // Reset entire array content
+    r = 0; // No rows on empty array
+
+    // Set up frontline invaders
+    this.f = []; // erase previous values
+    // this.f = this.a[r - 1]; // Reset frontline to frontmost array
+  }
+
+  // Initialize the properties of the array of invaders
+  this.setup = function(invaderCount = 3, invaderWidth = 80, invaderHeight = 20, gapSpace = 30, direction = right, speed, frameRate = 50 /* makes invader movement blocky (every 50 unit 'seconds', move for 1 unit 'second' */, invaderRows = 2) { 
+    this.invaderCount  = invaderCount;
+    this.invaderWidth  = invaderWidth;
+    this.invaderHeight = invaderHeight;
+    this.gapSpace      = gapSpace;
+    this.direction     = direction;
+    this.speed         = new vector2d(40, 25); // arbitrary for now
+    this.frameUpper    = frameRate;
+    this.invaderRows   = invaderRows;
+
+    // Make sure invader array is clear (sanity check)
+    this.clear();
+
+    let frameNum = this.frameUpper; // Cooldown time
+    //
+    // SETUP AND SPACING
+    // Relative space between each invader
+    // x coordinate of next invader's left side, count for previous invader's
+    // width and add the gap space
+    let next = this.invaderWidth + this.gapSpace;
+    // Space between leftmost & rightmost invader boundaries and the canvas 
+    // boundary
+    let edgeSpace = (canvas.width - this.invaderCount * (this.invaderWidth + this.gapSpace))/2 + this.gapSpace;
+    // Where to begin drawing the invaders centered in the canvas' x axis
+    let drawAt = edgeSpace;  
+    // GRID
+    let y = this.invaderHeight/2; // initial y positioning (at canvas boundary)
+    let rowSpace = 100; // space between each row
+
+    // EACH INDIVIDUAL INVADER
+    this.addRows(invaderRows);
+    // Populate with invaderCount number of invaders
+    for(let i = 0; i < invaderRows; ++ i) {
+      for(let j = 0; j < invaderCount; ++ j) {
+        this.a[i].push(
+                                new invaderToken(
+                                  /*position*/   new vector2d (drawAt, y),
+                                  /*width:*/     this.invaderWidth, 
+                                  /*height:*/    this.invaderHeight,  
+                                  /*direcion:*/  this.direction,
+                                  /* NOTE: right now they all share the same speed vector2d, so changing this speed vector will alter the speeds of every invader (all js arguments passed by reference) (are they?) */
+                                  /*speed:   */  this.speed,
+                                  /*color:*/     "green",
+                                  /*fireRate*/   1));
+        gameArea.entities().push(this.a[i][j]);
+        drawAt += next ;
+      }
+      drawAt = edgeSpace;
+      y += rowSpace; // GRID
+    }
+    this.f = this.a[r - 1];
+
+    waitAtRight = false;
+    waitAtLeft =  false;
+  }
+
+  this.update = function(dt = 0) {
+    // update positioning
+    if (frameNum -- <= 0) { // causes a blink/flicker effect, they're only allowed to move once, when the frameNum ends its cooldown
+      frameNum = this.frameUpper; // Start cooldown time again
+
+      let vLeftmost =  gameArea.invaderFieldHitbox().left();
+      let vRightmost = gameArea.invaderFieldHitbox().right();
+
+      if(waitAtRight || waitAtLeft) { // move downward for one turn after the frame cooldown (however long a 'frame'/blink lasts)
+        this.a.forEach(function(row) {
+          row.forEach(function(invader) {
+            // invader.position.y += 15;
+            invader.direction = down;
+            //this.direction = down; // BUG, for some reason this can't be accessed nor used to add to invader position even though it's scope isn't limited here
+            invader.position = vector2dAdd(invader.position, vectorTimesScalar(invader.direction, 20)); // BUG
+          });
+        });
+        if(waitAtRight) {
+          waitAtRight = false;
+          //invader.direction = left;
+          this.direction = left; 
+        }
+        else {
+          waitAtLeft = false;
+          //invader.direction = right;
+          this.direction = right;
+        }
+      }
+      else {
+        // Check left and right vader boundaries
+        let dist  =  this.direction.x * this.speed.x;// * dt; //TODO: same movement w/ seconds
+        // TODO: shouldn't you only have to check this once? after each invader is moved? instead of comparing the hitbox each time a single invader moves maybe.. then again this could result in some of them going over the boundary, but that's only when they're not moving at same speed i think...
+        let distR = vRightmost + dist;
+        let distL = vLeftmost  + dist;
+
+        // Movement based on canvas boundary collisions
+        // Right boundary of canvas
+        if(distR > canvas.width) { 
+          // Calculate distance needed to reach rightmost canvas edge
+          let toRightBound = canvas.width - vRightmost;
+
+          // Move all invaders distance needed for rightmost invader to reach
+          // canvas edge (and then move opposite direction in the next instance)
+          this.a.forEach(function(row) {
+            row.forEach(function(invader) {
+              invader.position.x += toRightBound;
+            });
+          });
+
+          waitAtRight = true; // invaders wait at corner for two 'turns' (frameRate)
+        }
+
+        // Left boundary of canvas
+        else if(distL <= 0) { // left boundary, change direction  
+          // make vaders touch left bound, same as distance of leftmost to bound
+          let toLeftBound = 0 - vLeftmost;
+
+          this.a.forEach(function(row) {
+            row.forEach(function(invader) { // right boundary
+              invader.position.x += toLeftBound;
+            });
+          });
+
+          waitAtLeft = true;
+        }
+
+        else this.a.forEach(function(row) { // default, just move
+          row.forEach(function(invader) {
+            invader.position.x += dist;
+          });
+        });
+      }
+    }
+  }
+
+  this.shoot = function() {
+    // if(!this.wait) {
+    //   f.forEach(function(frontliner) { // Frontmost invaders will shoot
+    //     if(!frontliner.collided) {
+    //         frontliner.shoot();           
+    //     }
+    //   });
+    // }
+  }
+
+  // Can't update invader array from the outside, in the meantime, have to do it from within GOBA
+  this.cleanup = function(_willDelete) {
+    if(_willDelete.length == 0) { // nothing to delete
+      return;
+    }
+    function wontDelete(token) {
+      // returns true if token isn't marked for deletion (i.e. if token isn't in '_willDelete' array)
+      return !_willDelete.includes(token);
+    }
+
+    for(let i = 0; i < r; ++ i) {
+      this.a[i] = this.a[i].filter(wontDelete);
+    }
+    this.f = this.f.filter(wontDelete);
   }
 }
