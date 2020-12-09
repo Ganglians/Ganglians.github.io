@@ -327,6 +327,8 @@ var gameArea = (function() { // Singleton
     // TODO: Simplify by just using gameArea's _entities and iterating through that (after getting bullets over here)
     _invadarr.update(dt);
     _player1.update(dt);
+    // PHY
+    physics.shotKeeper.update(dt);
 
     _cleanup(); // Remove dead tokens
     _willDelete = []; // reset the list after cleaning up
@@ -334,9 +336,6 @@ var gameArea = (function() { // Singleton
     // attacks
     // TODO: Make this part of the _entity update
     //_invadarr.shoot();
-
-    // PHY
-    physics.shotKeeper.update(dt);
 
     document.getElementById("bull").innerHTML = "bullets: " + _shots.length;
 
@@ -346,7 +345,7 @@ var gameArea = (function() { // Singleton
     // _player1.intersect(); 
     // [Bullets => iterate invaders]
 
-    // Invader collision check
+    // Invader collision check //TODO: Move to physics
     _invadarr.a.forEach(function(row, rind) { // row index
       row.forEach(function(invader, cind) { // column index
         physics.shotKeeper.collisionCheck(invader);
@@ -732,13 +731,13 @@ function invaderArray() { // 2d invader array
   }
 
   // Initialize the properties of the array of invaders
-  this.setup = function(invaderCount = 3, invaderWidth = 80, invaderHeight = 20, gapSpace = 30, direction = right, speed, frameRate = 50 /* makes invader movement blocky (every 50 unit 'seconds', move for 1 unit 'second' */, invaderRows = 2) { 
+  this.setup = function(invaderCount = 3, invaderWidth = 80, invaderHeight = 20, gapSpace = 20, direction = right, speed, frameRate = 50 /* makes invader movement blocky (every 50 unit 'seconds', move for 1 unit 'second' */, invaderRows = 1) { 
     this.invaderCount  = invaderCount;
     this.invaderWidth  = invaderWidth;
     this.invaderHeight = invaderHeight;
     this.gapSpace      = gapSpace;
     this.direction     = direction;
-    this.speed         = new vector2d(40, 25); // arbitrary for now
+    this.speed         = new vector2d(1, 25); // arbitrary for now
     this.frameUpper    = frameRate;
     this.invaderRows   = invaderRows;
 
@@ -754,7 +753,8 @@ function invaderArray() { // 2d invader array
     let next = this.invaderWidth + this.gapSpace;
     // Space between leftmost & rightmost invader boundaries and the canvas 
     // boundary
-    let edgeSpace = (canvas.width - this.invaderCount * (this.invaderWidth + this.gapSpace))/2 + this.gapSpace;
+    // let edgeSpace = (canvas.width - this.invaderCount * (this.invaderWidth + this.gapSpace))/2 + this.gapSpace;
+    let edgeSpace = canvas.width/2 - (((this.invaderWidth * invaderCount) + (this.gapSpace * (invaderCount - 1)))) + this.invaderWidth/2; 
     // Where to begin drawing the invaders centered in the canvas' x axis
     let drawAt = edgeSpace;  
     // GRID
@@ -798,7 +798,7 @@ function invaderArray() { // 2d invader array
     if(vRightmost > canvas.width) { 
       this.a.forEach(function(row) {
         row.forEach(function(invader) {
-          invader.position.y += 15;
+          invader.position.y += 1;
           invader.direction = left;
         });
       });
@@ -809,7 +809,7 @@ function invaderArray() { // 2d invader array
       waitAtLeft = true;
       this.a.forEach(function(row) {
         row.forEach(function(invader) {
-          invader.position.y += 15;
+          invader.position.y += 1;
           invader.direction = right;
         });
       });

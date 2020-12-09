@@ -11,6 +11,7 @@ $peach:     #fd9475;
 $pink:      #ff00cc;
 $violet:    #8f00ff;
 $purple:    #bf00ff;
+$mountain:  #a57ed9;
 $red:       #f93d6b;
 $teal:      #38e3c4;
 $onyx:      #0f0f0f;
@@ -18,7 +19,7 @@ $onyx:      #0f0f0f;
 /*The color between transitions for home's background*/
 $mid-color: #666699;
 /*height: 100vh;*/
-background: linear-gradient(to top, #071957 -5vh, $mid-color, black);
+background: linear-gradient(to top, #071957, $mid-color, black);
 
 /*Represents a single bar of specified height, color, and animation speed*/
 @mixin parallelogram($bar-height, $bar-width, $color1, $color2: transparent) {
@@ -59,7 +60,36 @@ background: linear-gradient(to top, #071957 -5vh, $mid-color, black);
   /*Allow visibility even if hero three changes perspective property*/
   z-index: 1;
   background-color: rgba(0, 0, 0, 0);   /*Transparent background*/
-  background-image: url('/images/bg_mountains.svg');
+  /*filter: brightness(0.5) sepia(1) hue-rotate(-70deg) saturate(5);*/
+  /*background-image: url('/images/bg_mountains.svg');*/
+  .mountains {
+    /*background-image: (linear-gradient(270deg, $mountain, $peach));*/
+    /*background-size: 100% 100%;*/
+    /*overflow: hidden;*/
+    /*animation: TransitioningBackground 10s ease infinite;*/
+    position: absolute;
+    width: 100vw;
+    height: 30vw;
+    bottom: 1.9vw;
+    z-index: -2;
+    opacity: .7;
+    filter: invert(61%) sepia(86%) saturate(1411%) hue-rotate(214deg) brightness(88%) contrast(92%);
+    /* color changing mountains using filters that alter the default black color to different colors*/
+    @keyframes borealis {
+      0% {
+        filter: invert(61%) sepia(86%) saturate(1411%) hue-rotate(214deg) brightness(88%) contrast(92%);
+      }
+      100% {
+        filter: invert(99%) sepia(81%) saturate(1534%) hue-rotate(117deg) brightness(95%) contrast(84%);
+      }
+    }
+    animation-name: borealis;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    animation-play-state: running;
+    animation-duration: 5s;
+    animation-direction: alternate;
+  }
   background-repeat: no-repeat;
   /*Can stretch bg image due to adding 'preserveAspectRatio="none"' line to it*/
   background-size: 105vw 20vh;
