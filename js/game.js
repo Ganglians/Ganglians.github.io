@@ -570,10 +570,31 @@ function invaderToken(position, width, height, direction, speed, color = "blue",
   this.prototype = Object.create(gameToken.prototype);  
 
   this.fireRate  = fireRate;
-
+  let waitAtLeft  = false;
+  let waitAtRight = false;
   var cooldown   = 0; // Time until next shot is available
   var shotChance = 1; // % chance of firing a shot
   this.wait = false; // decides when invader can move
+
+  this.update = function(dt = 0) {
+     // update behavior according to positioning
+    let vLeftmost =  gameArea.invaderFieldHitbox().left();
+    let vRightmost = gameArea.invaderFieldHitbox().right();
+
+    // Movement based on canvas/group of enemies boundary collisions
+    // Right boundary of canvas
+    if(vRightmost > canvas.width) { 
+      this.position.y += 10;
+      this.direction = left;
+    }
+
+    // Left boundary of canvas
+    else if(vLeftmost <= 0) {
+      this.waitAtLeft = true;
+      this.position.y += 10;
+      this.direction = right;
+    }   
+  }
 
   this.shoot = function () {
       cooldown += dt;
@@ -731,13 +752,13 @@ function invaderArray() { // 2d invader array
   }
 
   // Initialize the properties of the array of invaders
-  this.setup = function(invaderCount = 3, invaderWidth = 80, invaderHeight = 20, gapSpace = 20, direction = right, speed, frameRate = 50 /* makes invader movement blocky (every 50 unit 'seconds', move for 1 unit 'second' */, invaderRows = 1) { 
+  this.setup = function(invaderCount = 3, invaderWidth = 60, invaderHeight = 20, gapSpace = 30, direction = right, speed, frameRate = 50 /* makes invader movement blocky (every 50 unit 'seconds', move for 1 unit 'second' */, invaderRows = 1) { 
     this.invaderCount  = invaderCount;
     this.invaderWidth  = invaderWidth;
     this.invaderHeight = invaderHeight;
     this.gapSpace      = gapSpace;
     this.direction     = direction;
-    this.speed         = new vector2d(1, 25); // arbitrary for now
+    this.speed         = new vector2d(50, 25); // arbitrary for now
     this.frameUpper    = frameRate;
     this.invaderRows   = invaderRows;
 
@@ -789,31 +810,11 @@ function invaderArray() { // 2d invader array
   }
 
   this.update = function(dt = 0) {
-    // update behavior according to positioning
-    let vLeftmost =  gameArea.invaderFieldHitbox().left();
-    let vRightmost = gameArea.invaderFieldHitbox().right();
-
-    // Movement based on canvas/group of enemies boundary collisions
-    // Right boundary of canvas
-    if(vRightmost > canvas.width) { 
-      this.a.forEach(function(row) {
-        row.forEach(function(invader) {
-          invader.position.y += 1;
-          invader.direction = left;
-        });
+    this.a.forEach(function(row) {
+      row.forEach(function(invader) {
+        invader.update(dt);
       });
-    }
-
-    // Left boundary of canvas
-    else if(vLeftmost <= 0) {
-      waitAtLeft = true;
-      this.a.forEach(function(row) {
-        row.forEach(function(invader) {
-          invader.position.y += 1;
-          invader.direction = right;
-        });
-      });
-    }
+    });
   }
 
   this.shoot = function() {
