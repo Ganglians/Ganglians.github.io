@@ -78,6 +78,9 @@ var physics = (function () {
 
 })();
 
+// ████████████████████████████████████████████████████████████████████████████
+//                                      Vector
+// ████████████████████████████████████████████████████████████████████████████
 // vectors for game mechanics and positioning (note: game is 2d for now)
 function vector2d(x, y) {
   this.x = x;
@@ -116,3 +119,4 @@ function vectorNormal(v) { // returns normalized vector (length = 1)
 
   return vectorTimesScalar(v, reciprocal);
 }
+

@@ -236,8 +236,8 @@ var renderer = (function() { // Note: context = ctx for now, later, the 'context
 var gameArea = (function() { // Singleton
   // variables
   // game token variables:
-  var _entities = []; // Holds all (generic) game tokens used in the game
-  var _player1 = new playerToken(new vector2d(0, 0), 70, 70, idle, new vector2d(125, 5)); //5 isn't active atm since direction is x axis only
+  let _entities = []; // Holds all (generic) game tokens used in the game
+  let _player1 = new playerToken(new vector2d(0, 0), 70, 70, idle, new vector2d(125, 5)); //5 isn't active atm since direction is x axis only
 
   // Manages invaders TODO: Any way to remove all invader array methods from invadarr? feel like gameArea should return values for it, then there wouldn't need to be as much nesting (clarity might decrease if not done right though)
   let _invadarr = new invaderArray();
@@ -285,9 +285,7 @@ var gameArea = (function() { // Singleton
     canvas.height = window.innerHeight;
 
     _player1.setup();
-
-    //RELOCATION
-    _entities.push(_player1);
+    _entities.push(_player1); // Add player to list of total gameArea entities
 
     _invadarr.setup();
     // Initialize structure that displays bullets (clears array)
@@ -380,7 +378,9 @@ var gameArea = (function() { // Singleton
     }
     // only let unmarked tokens filter through (tokens not in _willDelete arr)
     _entities = _entities.filter(notIncluded);
-    _invadarr.cleanup(_willDelete);
+    for(let i = 0; i < _invadarr.r; ++ i) {
+      _invadarr.a[i] = _invadarr.a[i].filter(notIncluded);
+    }
 
     _shots = _shots.filter(notIncluded);
     // if(_willDelete.includes(_player1)) { // TODO: game over
@@ -722,37 +722,31 @@ function playerToken(position, width, height, direction, speed, /* BULL1->speed 
 
 function invaderArray() { // 2d invader array
   //  a: {},  // Associative array, doesn't have built-in methods (ex. length())
-  this.a = [];
-  this.f = []; // Invaders in the frontline (those allowed to shoot) 
+  let a = [];
+  let f = []; // Invaders in the frontline (those allowed to shoot) 
   let r = 0;  // total rows in the 2d array
 
   let invaderCount, invaderWidth, invaderHeight,
       gapSpace,
       direction, speed, frameUpper, invaderRows;
 
-  let frameNum = 0; // Marks the current frame you're on
-
-  // Make invaders wait one 'turn' (frameRate) at game edges before moving again
-  let waitAtRight = false;
-  let waitAtLeft = false;
-
   // methods
   this.addRows = function(numOf) { // Add specific number of rows
     for(let i = 0; i < numOf; i ++) {
-      this.a[r ++] = [];
+      this.a[this.r ++] = [];
     }
   }
 
   this.clear = function() {
     this.a = []; // Reset entire array content
-    r = 0; // No rows on empty array
+    this.r = 0; // No rows on empty array
 
     // Set up frontline invaders
     this.f = []; // erase previous values
   }
 
   // Initialize the properties of the array of invaders
-  this.setup = function(invaderCount = 3, invaderWidth = 60, invaderHeight = 20, gapSpace = 30, direction = right, speed, frameRate = 50 /* makes invader movement blocky (every 50 unit 'seconds', move for 1 unit 'second' */, invaderRows = 1) { 
+  this.setup = function(invaderCount = 3, invaderWidth = 60, invaderHeight = 20, gapSpace = 30, direction = right, speed, frameRate = 50 /* makes invader movement blocky (every 50 unit 'seconds', move for 1 unit 'second' */, invaderRows = 3) { 
     this.invaderCount  = invaderCount;
     this.invaderWidth  = invaderWidth;
     this.invaderHeight = invaderHeight;
@@ -764,8 +758,6 @@ function invaderArray() { // 2d invader array
 
     // Make sure invader array is clear (sanity check)
     this.clear();
-
-    let frameNum = this.frameUpper; // Cooldown time
     //
     // SETUP AND SPACING
     // Relative space between each invader
@@ -789,7 +781,7 @@ function invaderArray() { // 2d invader array
       for(let j = 0; j < invaderCount; ++ j) {
         this.a[i].push(
                                 new invaderToken(
-                                  /*position*/   new vector2d (drawAt, y),
+                                  /*position*/   new vector2d(drawAt, y),
                                   /*width:*/     this.invaderWidth, 
                                   /*height:*/    this.invaderHeight,  
                                   /*direcion:*/  this.direction,
@@ -804,9 +796,6 @@ function invaderArray() { // 2d invader array
       y += rowSpace; // GRID
     }
     this.f = this.a[r - 1]; // Set frontline to invaders in the frontmost row
-
-    waitAtRight = false;
-    waitAtLeft =  false;
   }
 
   this.update = function(dt = 0) {
@@ -825,21 +814,5 @@ function invaderArray() { // 2d invader array
     //     }
     //   });
     // }
-  }
-
-  // Can't update invader array from the outside, in the meantime, have to do it from within GOBA
-  this.cleanup = function(_willDelete) {
-    if(_willDelete.length == 0) { // nothing to delete
-      return;
-    }
-    function wontDelete(token) {
-      // returns true if token isn't marked for deletion (i.e. if token isn't in '_willDelete' array)
-      return !_willDelete.includes(token);
-    }
-
-    for(let i = 0; i < r; ++ i) {
-      this.a[i] = this.a[i].filter(wontDelete);
-    }
-    this.f = this.f.filter(wontDelete);
   }
 }
