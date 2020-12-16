@@ -1,11 +1,11 @@
 var physics = (function () {
   var _shotKeeper = new _shotKeeper(); // shotKeeper class instance
 
-  // Updates 
-  // TODO: Also handles collisions
-  function _update(dt = 0) { // TODO: time blind (gameArea has time only)
+  // Updates coordinates of game tokens according to their velocities and the 
+  // game time
+  // Also handles collisions
+  function _update(dt = 0) { // TODO: time "blind" (gameArea has time only)
     gameArea.entities().forEach(function(entity) {
-      // TODO: Need to implement both X and Y directions (only use one of those atm)
       entity.position.x += entity.direction.x * entity.speed.x * dt;
       entity.position.y += entity.direction.y * entity.speed.y * dt;
     });
@@ -15,15 +15,11 @@ var physics = (function () {
   // function will not be used as a data type or anything
   function _shotKeeper() { // class in charge of keeping tabs on all bullets
     this.addShot = function(position, width = 5, height = 15, direction, speed, color = "blue") {
-      // Given where bullet should spawn (x, y) but need to center the bullet
-      // TODO: Make bullet spawn without touching player, account for this 
-      // Can possibly circumvent this by differentiating player and invader
-      // bullets
-      // GRID need to change shot depending on if player or invader shoot it 
-      // (displacement/side it comes out from is different)
       // Can do this under the function call for each of them (TODO) then
       // won't have to specify the position here, but in the addShot call in
       // either the invader or the player
+
+      // y position takes into account the height of the token that shoots
       this.position  = new vector2d(position.x, position.y - height/2);
       this.width     = width;
       this.height    = height;
@@ -34,12 +30,8 @@ var physics = (function () {
       gameArea.shots().push(new gameToken(this.position, this.width, this.height, this.direction, this.speed, this.color));
     }
 
-    // Redefine clear/draw to render all the bullets. Probably though can use the
-    // same kind of approach as invaders, defining a 'move' property. If so, then
-    // I can DRY out the methods' code into a single function, and use said 
-    // function in each object class!! <- may be unable to due to how certain
-    // things move, and movement is simply adding/subtracting x and y. The draws
-    // are already DRYed out
+    // Redefine clear/draw to render all the bullets. Probably though can use the same kind of approach as invaders, defining a 'move' property. If so, then. I can DRY out the methods' code into a single function, and use said function in each object class!! <- may be unable to due to how certain things move, and movement is simply adding/subtracting x and y. The draws are already DRYed out 
+    // This is basically what the renderer does.
     this.update = function() {
       //TODO: Add collision check, remove if collision
       // Delete individual shot if it leaves canvas (cleanup)
@@ -47,15 +39,14 @@ var physics = (function () {
       gameArea.shots().forEach(function(shot) {
         // Check bounds
         if(shot.hitbox().top() > canvas.height || shot.hitbox().bottom() < 0) {
-          // gameArea.shots().splice(shot, 1);
           gameArea.willDelete().push(shot);
         }
-        // **********************************************************************
-        else { // advance
+        // ********************************************************************
+        else { // advance the shot
           let ydirection = shot.direction.y * shot.speed.y;
           shot.position.y += ydirection * dt;
         }
-        // **********************************************************************
+        // ********************************************************************
       });
     }
 
@@ -78,16 +69,16 @@ var physics = (function () {
 
 })();
 
-// ████████████████████████████████████████████████████████████████████████████
+// ----------------------------------------------------------------------------
 //                                      Vector
-// ████████████████████████████████████████████████████████████████████████████
+// ----------------------------------------------------------------------------
 // vectors for game mechanics and positioning (note: game is 2d for now)
 function vector2d(x, y) {
   this.x = x;
   this.y = y;
 }
 
-// vector operation functions
+// vector operation methods
 // Note: they don't alter the original arguments used
 function vector2dAdd(v1, v2) {
   return new vector2d(v1.x + v2.x, v1.y + v2.y);

@@ -16,29 +16,49 @@
 //       };
 // })();
 
+// Hold current width and height of the canvas, respectively
+let w1, h1;
 //*********************************LISTENERS***********************************
 // Function that toggles an HTML element's visibility (used on canvas)
 const toggle = (elem) => {
   // Adds or removes 'hidden' class to element
   elem.classList.toggle('hidden');
 }
-
 // Resizes game's canvas (A.K.A. 'gameArea') to dynamic page size (i.e. when 
 // user changes their browser's size)
 window.addEventListener("resize", function(event) {
   canvas = document.getElementById("game-canvas");
+  let w2 = window.innerWidth;
+  let h2 = window.innerHeight;
 
+  // Scale game elements accordingly if the game window (canvas in this case) gets resized. Done by multiplying entitie's area and positioning by the ratio of how much the newly resized window (with w2 = width, h2 = height) differs from the previous window size (with w1 = width, h1 = height)
+  gameArea.entities().forEach(function(entity) {
+    entity.width      *= w2/w1;
+    entity.height     *= h2/h1;
+    entity.position.x *= w2/w1;
+    entity.position.y *= h2/h1;
+    // entity.speed.x *= w2/w1; // Maybe rescale the speed as well, because a resized window will keep the speed the same as before the window's was resized
+    // entity.speed.y *= h2/h1;
+  });
+
+  // The resized window becomes the new current window (with w1 = width, h1 = height)
+  h1 = h2;
+  w1 = w2;
+
+  // Canvas resizing (responsive canvas resizes to fit available space)
   canvas.width  = window.innerWidth;
   canvas.height = window.innerHeight;
 });
 
 // Resize canvas from the get-go
-window.addEventListener("load", function(event) { 
+window.addEventListener("load", function(event) {
   canvas = document.getElementById("game-canvas");
   ctx = canvas.getContext("2d");
 
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+  w1 = window.innerWidth;
+  h1 = window.innerHeight;
 });  
 
 // Player token's controls 
@@ -51,16 +71,14 @@ window.addEventListener('keyup', function(event) {
   activeKeys[event.keyCode] = false; // Player stops pressing key, false in array
 }); 
 
-
 // *****************************GLOBAL VARIABLES*******************************
-// TODO: Add a x and y direction (invaders should have a difference in case of needing it later)
-
+// Player listener variables
 // Object list of key presses ('keydown'). False for unpressed or missing
 var activeKeys = {};
 var holding = '';
 
 // Listeners' pertinent keycodes 
-const Space      = 32; // i.e. The spacebar 
+const Space      = 32; // the spacebar's keycode
 const ArrowLeft  = 37;
 const ArrowUp    = 38;
 const ArrowRight = 39;
@@ -75,9 +93,6 @@ let up    = new vector2d( 0, -1),
     // 'zero' vector token doesn't move
     idle = new vector2d(  0,  0);
 
-//BUG1 Keep track of frontmost player bullet's height
-let playerBH = 0;
-
 // Ensures game only starts every other click (start -> reset & stop -> start)
 var go = true;
 
@@ -91,8 +106,6 @@ var go = true;
 
 // Capture values when page loads
 let canvas, ctx; // Set with 'init()' after page is loaded
-
-// Keeps record of all shots/bullets
 
 // Used to display frames per second
 let timeStamp = 0;
@@ -134,8 +147,7 @@ var imgRepo = new function(nImages = 1) { // Class instance
 };
 
 // Renderer object
-//MOVE DOWN below gamearea
-var renderer = (function() { // Note: context = ctx for now, later, the 'context' 
+var renderer = (function() {
   // methods to draw specific game tokens (they don't look through stored 
   // tokens)
                              // variable will be defined internally 
@@ -237,10 +249,9 @@ var gameArea = (function() { // Singleton
   // variables
   // game token variables:
   let _entities = []; // Holds all (generic) game tokens used in the game
-  let _player1 = new playerToken(new vector2d(0, 0), 70, 70, idle, new vector2d(125, 5)); //5 isn't active atm since direction is x axis only
+  let _player1 = new playerToken(new vector2d(0, 0), 70, 70, idle, new vector2d(200, 5)); //5 isn't active atm since direction is x axis only
 
-  // Manages invaders TODO: Any way to remove all invader array methods from invadarr? feel like gameArea should return values for it, then there wouldn't need to be as much nesting (clarity might decrease if not done right though)
-  let _invadarr = new invaderArray();
+  let _invadarr = new invaderArray();  // Manages enemy tokens 
   let _invaderFieldHitbox = new rectangle(0, 0, 0, 0);
   let _shots  =  []; // Holds all bullets
   let _willDelete = []; // Holds all tokens marked for deletion
@@ -248,6 +259,7 @@ var gameArea = (function() { // Singleton
   // gameArea variables:
   let startLoop = false; // Starts/stops gameloop
   // --------------------------------------------------------------------------
+
   function _tog() {
     //BUG1
     if (go == true) { // Initiate game    
@@ -262,8 +274,7 @@ var gameArea = (function() { // Singleton
       this.start(); // Set variables to start game
     } //BUG1 
     else { // End game, reset relevant variables
-      // TODO: Reset timeStamp(?)
-      timeStamp = 0;
+      timeStamp = 0; // TODO: Reset timeStamp(?)
       go = true;
       startLoop = false;
       // As of now, toggling button to end the game will lose all progress
@@ -288,8 +299,6 @@ var gameArea = (function() { // Singleton
     _entities.push(_player1); // Add player to list of total gameArea entities
 
     _invadarr.setup();
-    // Initialize structure that displays bullets (clears array)
-    //shotKeeper.setup();
 
     // Initiate gameLoop, request function gives the browser some air while 
     // looping and time the game loop to be in-sync with the browser repaint
@@ -299,7 +308,7 @@ var gameArea = (function() { // Singleton
   }
 
   function _gameLoop(timeStamp) { // TODO: Reset timeStamp(?)
-    if(!startLoop) {// Conditional that stops loop 
+    if(!startLoop) { // Conditional that stops loop 
       return;
     }
     // [ 1 ] UPDATE
@@ -340,7 +349,6 @@ var gameArea = (function() { // Singleton
     // [ 2 ] COLLISION DETECTION
     // [Bullet => Check for collision]
     // TODO: Cassie (i.e. player token collision)
-    // _player1.intersect(); 
     // [Bullets => iterate invaders]
 
     // Invader collision check //TODO: Move to physics
@@ -577,13 +585,17 @@ function invaderToken(position, width, height, direction, speed, color = "blue",
   this.wait = false; // decides when invader can move
 
   this.update = function(dt = 0) {
-     // update behavior according to positioning
+    // update behavior according to positioning
+    let vTop      =  gameArea.invaderFieldHitbox().top();
     let vLeftmost =  gameArea.invaderFieldHitbox().left();
     let vRightmost = gameArea.invaderFieldHitbox().right();
 
     // Movement based on canvas/group of enemies boundary collisions
+    // if (vTop > 0) {
+    //   this.direction = right;
+    // }
     // Right boundary of canvas
-    if(vRightmost > canvas.width) { 
+    if(vRightmost > canvas.width) {
       this.position.y += 10;
       this.direction = left;
     }
@@ -746,13 +758,13 @@ function invaderArray() { // 2d invader array
   }
 
   // Initialize the properties of the array of invaders
-  this.setup = function(invaderCount = 3, invaderWidth = 60, invaderHeight = 20, gapSpace = 30, direction = right, speed, frameRate = 50 /* makes invader movement blocky (every 50 unit 'seconds', move for 1 unit 'second' */, invaderRows = 3) { 
+  this.setup = function(invaderCount = 3, invaderWidth = 30, invaderHeight = 20, gapSpace = 30, direction = right, speed, frameRate = 50 /* makes invader movement blocky (every 50 unit 'seconds', move for 1 unit 'second' */, invaderRows = 3) { 
     this.invaderCount  = invaderCount;
     this.invaderWidth  = invaderWidth;
     this.invaderHeight = invaderHeight;
     this.gapSpace      = gapSpace;
     this.direction     = direction;
-    this.speed         = new vector2d(50, 25); // arbitrary for now
+    this.speed         = new vector2d(75, 100); // arbitrary for now
     this.frameUpper    = frameRate;
     this.invaderRows   = invaderRows;
 
@@ -774,6 +786,8 @@ function invaderArray() { // 2d invader array
     let y = this.invaderHeight/2; // initial y positioning (at canvas boundary)
     let rowSpace = 100; // space between each row
 
+    // let y = invaderRows * (invaderHeight + rowSpace) * -1;
+
     // EACH INDIVIDUAL INVADER
     this.addRows(invaderRows);
     // Populate with invaderCount number of invaders
@@ -782,15 +796,14 @@ function invaderArray() { // 2d invader array
         this.a[i].push(
                                 new invaderToken(
                                   /*position*/   new vector2d(drawAt, y),
-                                  /*width:*/     this.invaderWidth, 
-                                  /*height:*/    this.invaderHeight,  
+                                  /*width:*/     this.invaderWidth,
+                                  /*height:*/    this.invaderHeight,
                                   /*direcion:*/  this.direction,
-                                  /* NOTE: right now they all share the same speed vector2d, so changing this speed vector will alter the speeds of every invader (all js arguments passed by reference) (are they?) */
                                   /*speed:   */  this.speed,
                                   /*color:*/     "green",
                                   /*fireRate*/   1));
         gameArea.entities().push(this.a[i][j]);
-        drawAt += next ;
+        drawAt += next;
       }
       drawAt = edgeSpace;
       y += rowSpace; // GRID
