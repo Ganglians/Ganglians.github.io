@@ -103,7 +103,6 @@ var go = true;
 //      |
 //      |
 //      V(0,1)
-
 // Capture values when page loads
 let canvas, ctx; // Set with 'init()' after page is loaded
 
@@ -333,16 +332,18 @@ var gameArea = (function() { // Singleton
     // C) Update all tokens/game objects
     // TODO: Simplify by just using gameArea's _entities and iterating through that (after getting bullets over here)
     _invadarr.update(dt);
+    _invadarr.shoot();
     _player1.update(dt);
     // PHY
     physics.shotKeeper.update(dt);
+
 
     _cleanup(); // Remove dead tokens
     _willDelete = []; // reset the list after cleaning up
 
     // attacks
     // TODO: Make this part of the _entity update
-    //_invadarr.shoot();
+    _invadarr.shoot();
 
     document.getElementById("bull").innerHTML = "bullets: " + _shots.length;
 
@@ -608,7 +609,7 @@ function invaderToken(position, width, height, direction, speed, color = "blue",
     }   
   }
 
-  this.shoot = function () {
+  this.shoot = function (dt = 0) {
       cooldown += dt;
 
       if(cooldown > this.fireRate) {
@@ -620,7 +621,7 @@ function invaderToken(position, width, height, direction, speed, color = "blue",
         //if(laChance < shotChance) { //@BULL1
           // this.y + height + 1 to ensure bullet doesn't kill origin point  
           //____ fixing this will probably fix program, but the bullets seem to flow nicely atm            
-          physics.shotKeeper.addShot(
+          gameArea.shots().push(new gameToken(
             /*position:*/     new vector2d(
             /*x*/               this.position.x,
             /*y*/               this.hitbox().bottom() + this.height + 11),
@@ -628,7 +629,7 @@ function invaderToken(position, width, height, direction, speed, color = "blue",
             /*height:*/       10, 
             /*direction:*/    new vector2d(0, 1),
             /*speed:   */     new vector2d(1, 125),
-            /*color:*/        "orange");
+            /*color:*/        "orange"));
         }
       //}
   }
@@ -718,7 +719,9 @@ function playerToken(position, width, height, direction, speed, /* BULL1->speed 
       //   *(x, y) Center   | Token height 
       // █████              |
       // Code below ensures bullet spawns 1 unit above top of player's hitbox
-      physics.shotKeeper.addShot(
+
+      // Add the bullet to existing game
+      gameArea.shots().push(new gameToken(
                          /*position*/      new vector2d(
                                             this.position.x,
                                             this.hitbox().top() - bHeight - 1
@@ -727,7 +730,7 @@ function playerToken(position, width, height, direction, speed, /* BULL1->speed 
                          /*height:*/       bHeight,
                          /*direction:*/    new vector2d(0, -1),
                          /*speed:*/        new vector2d(0, 500),
-                         /*color*/         "yellow");
+                         /*color*/         "yellow"));
     }
   }
 }
@@ -815,17 +818,18 @@ function invaderArray() { // 2d invader array
     this.a.forEach(function(row) {
       row.forEach(function(invader) {
         invader.update(dt);
+        // invader.shoot(dt);
       });
     });
   }
 
   this.shoot = function() {
     // if(!this.wait) {
-    //   f.forEach(function(frontliner) { // Frontmost invaders will shoot
-    //     if(!frontliner.collided) {
-    //         frontliner.shoot();           
-    //     }
-    //   });
+      f.forEach(function(frontliner) { // Frontmost invaders will shoot
+        if(!frontliner.collided) {
+            frontliner.shoot(dt);           
+        }
+      });
     // }
   }
 }

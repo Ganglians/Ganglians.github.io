@@ -14,23 +14,6 @@ var physics = (function () {
   // Is there a better way to define an object with properties? Because this 
   // function will not be used as a data type or anything
   function _shotKeeper() { // class in charge of keeping tabs on all bullets
-    this.addShot = function(position, width = 5, height = 15, direction, speed, color = "blue") {
-      // Can do this under the function call for each of them (TODO) then
-      // won't have to specify the position here, but in the addShot call in
-      // either the invader or the player
-
-      // y position takes into account the height of the token that shoots
-      this.position  = new vector2d(position.x, position.y - height/2);
-      this.width     = width;
-      this.height    = height;
-      this.direction = direction;
-      this.speed     = speed;
-      this.color     = color;
-     
-      gameArea.shots().push(new gameToken(this.position, this.width, this.height, this.direction, this.speed, this.color));
-    }
-
-    // Redefine clear/draw to render all the bullets. Probably though can use the same kind of approach as invaders, defining a 'move' property. If so, then. I can DRY out the methods' code into a single function, and use said function in each object class!! <- may be unable to due to how certain things move, and movement is simply adding/subtracting x and y. The draws are already DRYed out 
     // This is basically what the renderer does.
     this.update = function() {
       //TODO: Add collision check, remove if collision
