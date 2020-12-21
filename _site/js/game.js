@@ -248,7 +248,7 @@ var gameArea = (function() { // Singleton
   // variables
   // game token variables:
   let _entities = []; // Holds all (generic) game tokens used in the game
-  let _player1 = new playerToken(new vector2d(0, 0), 70, 70, idle, new vector2d(200, 5)); //5 isn't active atm since direction is x axis only
+  let _player1 = new playerToken(new vector2d(0, 0), 70, 70, idle, new vector2d(200, 5)); // 5 isn't active atm since direction is x axis only
 
   let _invadarr = new invaderArray();  // Manages enemy tokens 
   let _invaderFieldHitbox = new rectangle(0, 0, 0, 0);
@@ -390,6 +390,8 @@ var gameArea = (function() { // Singleton
     for(let i = 0; i < _invadarr.r; ++ i) {
       _invadarr.a[i] = _invadarr.a[i].filter(notIncluded);
     }
+
+    _invadarr.frnt = _invadarr.frnt.filter(notIncluded);
 
     _shots = _shots.filter(notIncluded);
     // if(_willDelete.includes(_player1)) { // TODO: game over
@@ -579,8 +581,6 @@ function invaderToken(position, width, height, direction, speed, color = "blue",
   this.prototype = Object.create(gameToken.prototype);  
 
   this.fireRate  = fireRate;
-  let waitAtLeft  = false;
-  let waitAtRight = false;
   var cooldown   = 0; // Time until next shot is available
   var shotChance = 1; // % chance of firing a shot
   this.wait = false; // decides when invader can move
@@ -603,7 +603,6 @@ function invaderToken(position, width, height, direction, speed, color = "blue",
 
     // Left boundary of canvas
     else if(vLeftmost <= 0) {
-      this.waitAtLeft = true;
       this.position.y += 10;
       this.direction = right;
     }   
@@ -624,7 +623,7 @@ function invaderToken(position, width, height, direction, speed, color = "blue",
           gameArea.shots().push(new gameToken(
             /*position:*/     new vector2d(
             /*x*/               this.position.x,
-            /*y*/               this.hitbox().bottom() + this.height + 11),
+            /*y*/               this.hitbox().bottom() + 11), // 1 more than height below so token doesn't crash into it
             /*width:*/        5, 
             /*height:*/       10, 
             /*direction:*/    new vector2d(0, 1),
@@ -737,9 +736,9 @@ function playerToken(position, width, height, direction, speed, /* BULL1->speed 
 
 function invaderArray() { // 2d invader array
   //  a: {},  // Associative array, doesn't have built-in methods (ex. length())
-  let a = [];
-  let f = []; // Invaders in the frontline (those allowed to shoot) 
-  let r = 0;  // total rows in the 2d array
+  let a    = [];
+  let frnt = []; // Invaders in the frontline (those allowed to shoot) 
+  let r    = 0;  // total rows in the 2d array
 
   let invaderCount, invaderWidth, invaderHeight,
       gapSpace,
@@ -757,7 +756,7 @@ function invaderArray() { // 2d invader array
     this.r = 0; // No rows on empty array
 
     // Set up frontline invaders
-    this.f = []; // erase previous values
+    this.frnt = []; // erase previous values
   }
 
   // Initialize the properties of the array of invaders
@@ -804,32 +803,27 @@ function invaderArray() { // 2d invader array
                                   /*direcion:*/  this.direction,
                                   /*speed:   */  this.speed,
                                   /*color:*/     "green",
-                                  /*fireRate*/   1));
+                                  /*fireRate*/   10));
         gameArea.entities().push(this.a[i][j]);
         drawAt += next;
       }
       drawAt = edgeSpace;
       y += rowSpace; // GRID
     }
-    this.f = this.a[r - 1]; // Set frontline to invaders in the frontmost row
+    this.frnt = this.a[invaderRows - 1]; // set frontline as invaders in front row
   }
 
   this.update = function(dt = 0) {
     this.a.forEach(function(row) {
       row.forEach(function(invader) {
         invader.update(dt);
-        // invader.shoot(dt);
       });
     });
   }
 
   this.shoot = function() {
-    // if(!this.wait) {
-      f.forEach(function(frontliner) { // Frontmost invaders will shoot
-        if(!frontliner.collided) {
-            frontliner.shoot(dt);           
-        }
+      this.frnt.forEach(function(invader) {  // Frontmost invaders will shoot
+        invader.shoot(dt);
       });
-    // }
   }
 }
