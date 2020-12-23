@@ -323,16 +323,13 @@ var gameArea = (function() { // Singleton
     physics.update(dt); // time should only be observable on gameArea
 
     // B) Get the current hitbox surrounding every invader
-    _invaderFieldHitbox = _invadarr.a.reduce(function(total, row) {
-      return rectUnion(total, row.reduce(function(rowTotal, inv) {
-        return rectUnion(rowTotal, inv.hitbox());
-      }, undefined));
+    _invaderFieldHitbox = _invadarr.a.reduce(function(total, invader) {
+      return rectUnion(total, invader.hitbox());
     }, undefined);
 
     // C) Update all tokens/game objects
     // TODO: Simplify by just using gameArea's _entities and iterating through that (after getting bullets over here)
     _invadarr.update(dt);
-    _invadarr.shoot();
     _player1.update(dt);
     // PHY
     physics.shotKeeper.update(dt);
@@ -343,7 +340,7 @@ var gameArea = (function() { // Singleton
 
     // attacks
     // TODO: Make this part of the _entity update
-    _invadarr.shoot();
+    // _invadarr.shoot();
 
     document.getElementById("bull").innerHTML = "bullets: " + _shots.length;
 
@@ -353,15 +350,8 @@ var gameArea = (function() { // Singleton
     // [Bullets => iterate invaders]
 
     // Invader collision check //TODO: Move to physics
-    _invadarr.a.forEach(function(row, rind) { // row index
-      row.forEach(function(invader, cind) { // column index
-        physics.shotKeeper.collisionCheck(invader);
-        // WIP
-        // If a backup invader exists, begins attacking after frontmost dies BULL1
-        // if(invader.collision && rind > 0) {
-        //   _inv.invadarr.f[rind][cind] = _inv.invadarr.a[rind - 1][cind];
-        // }
-      });
+    _invadarr.a.forEach(function(invader) {
+      physics.shotKeeper.collisionCheck(invader);
     });
 
     // [ 3 ] CLEAR (CANVAS)
@@ -387,11 +377,7 @@ var gameArea = (function() { // Singleton
     }
     // only let unmarked tokens filter through (tokens not in _willDelete arr)
     _entities = _entities.filter(notIncluded);
-    for(let i = 0; i < _invadarr.r; ++ i) {
-      _invadarr.a[i] = _invadarr.a[i].filter(notIncluded);
-    }
-
-    _invadarr.frnt = _invadarr.frnt.filter(notIncluded);
+    _invadarr.a = _invadarr.a.filter(notIncluded);
 
     _shots = _shots.filter(notIncluded);
     // if(_willDelete.includes(_player1)) { // TODO: game over
@@ -583,7 +569,6 @@ function invaderToken(position, width, height, direction, speed, color = "blue",
   this.fireRate  = fireRate;
   var cooldown   = 0; // Time until next shot is available
   var shotChance = 1; // % chance of firing a shot
-  this.wait = false; // decides when invader can move
 
   this.update = function(dt = 0) {
     // update behavior according to positioning
@@ -609,28 +594,37 @@ function invaderToken(position, width, height, direction, speed, color = "blue",
   }
 
   this.shoot = function (dt = 0) {
+    // barrel: coordinates from where bullet originates from (barrel of gun)
+    // bullet comes out 1 unit in front of invader token (has to, else invader would destroy itself)
+      let barrel = vector2dAdd(this.position, new vector2d(0, 40));
       cooldown += dt;
+
+      function existsUnderneath(v) {
+          let hb = v.hitbox();
+          return barrel.y <= hb.top() && // true if there's invader below
+                  hb.left() <= barrel.x && barrel.x <= hb.right();
+      }
 
       if(cooldown > this.fireRate) {
         cooldown = 0;
+        if(!gameArea.invadarr().a.find(existsUnderneath)) { // need to make 2D for find to work
 
         // TODO: Reintroduce 'randomized' shots at a later time
         // laChance is French for luck
         //let laChance = Math.floor(Math.random()*101);
         //if(laChance < shotChance) { //@BULL1
           // this.y + height + 1 to ensure bullet doesn't kill origin point  
-          //____ fixing this will probably fix program, but the bullets seem to flow nicely atm            
+          //____ fixing this will probably fix program, but the bullets seem to flow nicely atm
           gameArea.shots().push(new gameToken(
-            /*position:*/     new vector2d(
-            /*x*/               this.position.x,
-            /*y*/               this.hitbox().bottom() + 11), // 1 more than height below so token doesn't crash into it
-            /*width:*/        5, 
-            /*height:*/       10, 
+            /*position:*/     barrel,
+            /*width:*/        5,
+            /*height:*/       10,
             /*direction:*/    new vector2d(0, 1),
             /*speed:   */     new vector2d(1, 125),
             /*color:*/        "orange"));
-        }
+      }
       //}
+    }
   }
 }
 
@@ -737,26 +731,13 @@ function playerToken(position, width, height, direction, speed, /* BULL1->speed 
 function invaderArray() { // 2d invader array
   //  a: {},  // Associative array, doesn't have built-in methods (ex. length())
   let a    = [];
-  let frnt = []; // Invaders in the frontline (those allowed to shoot) 
-  let r    = 0;  // total rows in the 2d array
 
   let invaderCount, invaderWidth, invaderHeight,
       gapSpace,
       direction, speed, frameUpper, invaderRows;
 
-  // methods
-  this.addRows = function(numOf) { // Add specific number of rows
-    for(let i = 0; i < numOf; i ++) {
-      this.a[this.r ++] = [];
-    }
-  }
-
   this.clear = function() {
     this.a = []; // Reset entire array content
-    this.r = 0; // No rows on empty array
-
-    // Set up frontline invaders
-    this.frnt = []; // erase previous values
   }
 
   // Initialize the properties of the array of invaders
@@ -791,11 +772,11 @@ function invaderArray() { // 2d invader array
     // let y = invaderRows * (invaderHeight + rowSpace) * -1;
 
     // EACH INDIVIDUAL INVADER
-    this.addRows(invaderRows);
+    // this.addRows(invaderRows);
     // Populate with invaderCount number of invaders
     for(let i = 0; i < invaderRows; ++ i) {
       for(let j = 0; j < invaderCount; ++ j) {
-        this.a[i].push(
+        this.a.push(
                                 new invaderToken(
                                   /*position*/   new vector2d(drawAt, y),
                                   /*width:*/     this.invaderWidth,
@@ -803,27 +784,20 @@ function invaderArray() { // 2d invader array
                                   /*direcion:*/  this.direction,
                                   /*speed:   */  this.speed,
                                   /*color:*/     "green",
-                                  /*fireRate*/   10));
-        gameArea.entities().push(this.a[i][j]);
+                                  /*fireRate*/   5));
+        // Place game token in gameArea
+        gameArea.entities().push(this.a[this.a.length - 1]);
         drawAt += next;
       }
       drawAt = edgeSpace;
       y += rowSpace; // GRID
     }
-    this.frnt = this.a[invaderRows - 1]; // set frontline as invaders in front row
   }
 
   this.update = function(dt = 0) {
-    this.a.forEach(function(row) {
-      row.forEach(function(invader) {
+    this.a.forEach(function(invader) {
         invader.update(dt);
-      });
-    });
-  }
-
-  this.shoot = function() {
-      this.frnt.forEach(function(invader) {  // Frontmost invaders will shoot
         invader.shoot(dt);
-      });
+    });
   }
 }
