@@ -350,9 +350,13 @@ var gameArea = (function() { // Singleton
     // [Bullets => iterate invaders]
 
     // Invader collision check //TODO: Move to physics
+    // Check if any player bullets have hit any invaders so that they can get deleted
     _invadarr.a.forEach(function(invader) {
       physics.shotKeeper.collisionCheck(invader);
     });
+
+    // TODO: Check if any invader bullets have hit the player, if HP reaches zero, game over
+    // physics.shotKeeper.collisionCheck(_player1);
 
     // [ 3 ] CLEAR (CANVAS)
     renderer.clear();
@@ -462,7 +466,7 @@ function rectangle(x = 0, y = 0, width = 1, height = 1) {
     return this.y + this.height;
   }
 
-  // Meethod to check if two rectangles intersect
+  // Method to check if two rectangles intersect
   this.intersect = function(thatRectangle) {
       if(thatRectangle.left() > this.right()  ||
          this.left() > thatRectangle.right()  ||
@@ -513,7 +517,7 @@ function rectUnion(r1, r2) {
 }
 
 // Generic game token
-function gameToken(position, width = 50, height = 70, direction, speed, color = "blue") {
+function gameToken(position, width = 50, height = 70, direction, speed, color = "blue", type = "") {
   this.position   = position; // position vector (2d)
   this.width      = width;
   this.height     = height;
@@ -522,6 +526,8 @@ function gameToken(position, width = 50, height = 70, direction, speed, color = 
   this.speed      = speed;     // speed vector (2d)
   // Set collision boolean
   this.color      = color;
+  // gameToken type of an instance, right now has empty string because it's not any specific type of game token
+  this.type       = type;
 
   this.setup = function() { // Stub
 
@@ -555,20 +561,23 @@ function gameToken(position, width = 50, height = 70, direction, speed, color = 
   }
 }
 
-function invaderToken(position, width, height, direction, speed, color = "blue", fireRate =  1 /*BUG1 fireRate*/) { //BULL1 
+function invaderToken(position, width, height, direction, speed, color = "blue", type = "enemy", fireRate =  1 /*BUG1 fireRate*/) { //BULL1 
   // Ref: javascript function call():
   // call gameToken with the instance that is 'this' invaderToken object, to
   // pass on the arguments invaderToken has in common with gameToken
-  gameToken.call(this, position, width, height, direction, speed, color); 
+  gameToken.call(this, position, width, height, direction, speed, color, type); 
   // Inheritance:
   // prototype method lets us add specified properties and methods to the 
   // object that calls it. 
   //gives it the property to create gameToken objects along with any new properties or methods it wants to add (since gameToken.prototype is used as an argument)
   this.prototype = Object.create(gameToken.prototype);  
 
+  // Unique properties not in gameToken parent
   this.fireRate  = fireRate;
-  var cooldown   = 0; // Time until next shot is available
-  var shotChance = 1; // % chance of firing a shot
+
+  // Local variables
+  let cooldown   = 0; // Time until next shot is available
+  let shotChance = 1; // % chance of firing a shot
 
   this.update = function(dt = 0) {
     // update behavior according to positioning
@@ -615,13 +624,16 @@ function invaderToken(position, width, height, direction, speed, color = "blue",
         //if(laChance < shotChance) { //@BULL1
           // this.y + height + 1 to ensure bullet doesn't kill origin point  
           //____ fixing this will probably fix program, but the bullets seem to flow nicely atm
+
+          // Since bullets have no other special properties (as of right now), they default to just ordinary game tokens
           gameArea.shots().push(new gameToken(
             /*position:*/     barrel,
             /*width:*/        5,
             /*height:*/       10,
             /*direction:*/    new vector2d(0, 1),
             /*speed:   */     new vector2d(1, 125),
-            /*color:*/        "orange"));
+            /*color:*/        "orange",
+            /*type:*/         "enemyShot"));
       }
       //}
     }
@@ -630,7 +642,7 @@ function invaderToken(position, width, height, direction, speed, color = "blue",
 
 // Optional: With inheritance, can add new properties at the end of 'fireRate'
 // Made into 'class' in case multiplayer gets established later
-function playerToken(position, width, height, direction, speed, /* BULL1->speed = 125,0*/color = "red", fireRate = .25) {
+function playerToken(position, width, height, direction, speed, /* BULL1->speed = 125,0*/color = "red", type = "player", fireRate = .25) {
   // playerToken inherits from more generic gameToken class
   gameToken.call(this, position, width, height, direction, speed, color);
   this.prototype = Object.create(gameToken.prototype);
@@ -641,6 +653,7 @@ function playerToken(position, width, height, direction, speed, /* BULL1->speed 
   // this.direction = direction;
   // this.speed     = speed;
   // this.color     = color;
+  // this.type      = type;
   this.fireRate  = fireRate;
 
   var cooldown = 0;
@@ -723,7 +736,8 @@ function playerToken(position, width, height, direction, speed, /* BULL1->speed 
                          /*height:*/       bHeight,
                          /*direction:*/    new vector2d(0, -1),
                          /*speed:*/        new vector2d(0, 500),
-                         /*color*/         "yellow"));
+                         /*color:*/        "yellow",
+                         /*type:*/         "playerShot"));
     }
   }
 }
@@ -784,6 +798,7 @@ function invaderArray() { // 2d invader array
                                   /*direcion:*/  this.direction,
                                   /*speed:   */  this.speed,
                                   /*color:*/     "green",
+                                  /*type:*/      "enemy",
                                   /*fireRate*/   5));
         // Place game token in gameArea
         gameArea.entities().push(this.a[this.a.length - 1]);
