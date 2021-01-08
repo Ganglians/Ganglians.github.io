@@ -59,6 +59,11 @@ window.addEventListener("load", function(event) {
   canvas.height = window.innerHeight;
   w1 = window.innerWidth;
   h1 = window.innerHeight;
+
+  canvas.addEventListener("touchstart", touchStart);
+  canvas.addEventListener("touchend", touchEnd);
+  canvas.addEventListener("touchcancel", touchEnd);
+
 });  
 
 // Player token's controls 
@@ -71,6 +76,70 @@ window.addEventListener('keyup', function(event) {
   activeKeys[event.keyCode] = false; // Player stops pressing key, false in array
 }); 
 
+// Touch
+function getRelativeTouchCoords(touch) {
+    function getOffsetLeft( elem ) {
+        var offsetLeft = 0;
+        do {
+            if( !isNaN( elem.offsetLeft ) ) {
+                offsetLeft += elem.offsetLeft;
+            }
+        }
+        while( elem = elem.offsetParent );
+        return offsetLeft;
+    }
+
+    function getOffsetTop( elem ) {
+        var offsetTop = 0;
+        do {
+            if( !isNaN( elem.offsetTop ) ) {
+                offsetTop += elem.offsetTop;
+            }
+        }
+        while( elem = elem.offsetParent );
+        return offsetTop;
+    }
+
+    var scale = game.gameFieldRect().width / canvas.clientWidth;
+    var x = touch.pageX - getOffsetLeft(canvas);
+    var y = touch.pageY - getOffsetTop(canvas);
+
+    return { x: x*scale,
+             y: y*scale };
+}
+
+function touchStart(e) {
+    var touches = e.changedTouches,
+        touchLocation,
+        playerAction;
+
+    e.preventDefault();
+
+    for( var i=touches.length-1; i>=0; i-- ) {
+        touchLocation = getRelativeTouchCoords(touches[i]);
+
+        if( touchLocation.x < game.gameFieldRect().width*(1/5) ) {
+            playerAction = "moveLeft";
+        }
+        else if( touchLocation.x < game.gameFieldRect().width*(4/5) ) {
+            playerAction = "fire";
+        }
+        else {
+            playerAction = "moveRight";
+        }
+
+        playerActions.startAction(touches[i].identifier, playerAction);
+    }
+}
+
+function touchEnd(e) {
+    var touches = e.changedTouches;
+    e.preventDefault();
+
+    for( var i=touches.length-1; i>=0; i-- ) {
+        playerActions.endAction(touches[i].identifier);
+    }
+}
 // *****************************GLOBAL VARIABLES*******************************
 // Player listener variables
 // Object list of key presses ('keydown'). False for unpressed or missing
@@ -586,10 +655,16 @@ function invaderToken(position, width, height, direction, speed, color = "blue",
     let vRightmost = gameArea.invaderFieldHitbox().right();
 
     // Movement based on canvas/group of enemies boundary collisions
-    // if (vTop > 0) {
-    //   this.direction = right;
-    // }
     // Right boundary of canvas
+
+    // Invaders descend from top of canvas, then move right
+    if(vTop < 0) {
+      this.position.y += 100 * dt;
+    }
+    else if(vTop > 0 && this.direction == idle) {
+      this.direction = right;
+    }
+
     if(vRightmost > canvas.width) {
       this.position.y += 10;
       this.direction = left;
@@ -755,7 +830,7 @@ function invaderArray() { // 2d invader array
   }
 
   // Initialize the properties of the array of invaders
-  this.setup = function(invaderCount = 3, invaderWidth = 30, invaderHeight = 20, gapSpace = 30, direction = right, speed, frameRate = 50 /* makes invader movement blocky (every 50 unit 'seconds', move for 1 unit 'second' */, invaderRows = 3) { 
+  this.setup = function(invaderCount = 3, invaderWidth = 30, invaderHeight = 20, gapSpace = 30, direction = idle, speed, frameRate = 50 /* makes invader movement blocky (every 50 unit 'seconds', move for 1 unit 'second' */, invaderRows = 3) { 
     this.invaderCount  = invaderCount;
     this.invaderWidth  = invaderWidth;
     this.invaderHeight = invaderHeight;
@@ -780,7 +855,7 @@ function invaderArray() { // 2d invader array
     // Where to begin drawing the invaders centered in the canvas' x axis
     let drawAt = edgeSpace;  
     // GRID
-    let y = this.invaderHeight/2; // initial y positioning (at canvas boundary)
+    let y = this.invaderHeight/2 - 1000; // initial y positioning (at canvas boundary)
     let rowSpace = 100; // space between each row
 
     // let y = invaderRows * (invaderHeight + rowSpace) * -1;
@@ -795,7 +870,7 @@ function invaderArray() { // 2d invader array
                                   /*position*/   new vector2d(drawAt, y),
                                   /*width:*/     this.invaderWidth,
                                   /*height:*/    this.invaderHeight,
-                                  /*direcion:*/  this.direction,
+                                  /*direcion:*/  idle,
                                   /*speed:   */  this.speed,
                                   /*color:*/     "green",
                                   /*type:*/      "enemy",
