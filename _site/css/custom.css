@@ -102,6 +102,9 @@
   font-size: 1em;
   font-weight: bold;
   /*Links change color when hovered over*/
+  /*        &:visited {
+            color: $mountain;
+          }*/
   position: relative;
   bottom: 4vh;
 }
@@ -501,6 +504,7 @@
 .home #play-button {
   /*Needs absolute positioning to work even inside the canvas*/
   position: absolute;
+  z-index: 3;
 }
 .home html, .home body {
   /*Give page dimensions so canvas can encompass entirety of page*/
@@ -514,7 +518,7 @@
   border: 1px solid #38e3c4;
   margin: -2px;
   position: absolute;
-  z-index: 0;
+  z-index: 3;
   /*z-index: 1;*/
   /*TODO: Make good scaling*/
   /*  width: 100vh;

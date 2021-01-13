@@ -159,6 +159,9 @@ background: linear-gradient(to top, #071957, $mid-color, black);
         &:active {
           color: $purple;
         }
+/*        &:visited {
+          color: $mountain;
+        }*/
         position: relative;
         bottom: 4vh;
       }
@@ -255,7 +258,6 @@ background: linear-gradient(to top, #071957, $mid-color, black);
       transform: rotateX(45deg);
 
       .horizontal-gridlines {  
-
         div:nth-of-type(1) {
           @include parallelogram($lt, 100vw, $aqua, transparent);
           /*box-shadow: 0vw -0.10vh 10px 0.3vh $aqua, 0vw 0.10vh 10px -0.3vh $aqua;*/
@@ -346,6 +348,7 @@ background: linear-gradient(to top, #071957, $mid-color, black);
 #play-button {
   /*Needs absolute positioning to work even inside the canvas*/
   position: absolute;
+  z-index: 3;
 }
 
 html, body {
@@ -361,7 +364,7 @@ html, body {
   border: 1px solid #38e3c4;
   margin: -2px;
   position: absolute;
-  z-index: 0;
+  z-index: 3;
   /*z-index: 1;*/
   /*TODO: Make good scaling*/
 /*  width: 100vh;

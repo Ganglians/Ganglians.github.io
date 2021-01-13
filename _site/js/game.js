@@ -18,6 +18,7 @@
 
 // Hold current width and height of the canvas, respectively
 let w1, h1;
+// let nav; // holds  navigational links found in the home page (image links and otherwise)
 //*********************************LISTENERS***********************************
 // Function that toggles an HTML element's visibility (used on canvas)
 const toggle = (elem) => {
@@ -27,6 +28,7 @@ const toggle = (elem) => {
 // Resizes game's canvas (A.K.A. 'gameArea') to dynamic page size (i.e. when 
 // user changes their browser's size)
 window.addEventListener("resize", function(event) {
+  // Grab the hidden canvas element in the home page
   canvas = document.getElementById("game-canvas");
   let w2 = window.innerWidth;
   let h2 = window.innerHeight;
@@ -52,6 +54,9 @@ window.addEventListener("resize", function(event) {
 
 // Resize canvas from the get-go
 window.addEventListener("load", function(event) {
+  // get the href's in the main page used for navigation
+  // nav = document.getElementsByClassName("link");
+
   canvas = document.getElementById("game-canvas");
   ctx = canvas.getContext("2d");
 
@@ -63,7 +68,6 @@ window.addEventListener("load", function(event) {
   canvas.addEventListener("touchstart", touchStart);
   canvas.addEventListener("touchend", touchEnd);
   canvas.addEventListener("touchcancel", touchEnd);
-
 });  
 
 // Player token's controls 
@@ -100,7 +104,9 @@ function getRelativeTouchCoords(touch) {
         return offsetTop;
     }
 
-    var scale = game.gameFieldRect().width / canvas.clientWidth;
+    var scale = canvas.width / canvas.clientWidth;
+    // var scale = 1;
+    // Get touch coordinates
     var x = touch.pageX - getOffsetLeft(canvas);
     var y = touch.pageY - getOffsetTop(canvas);
 
@@ -118,17 +124,18 @@ function touchStart(e) {
     for( var i=touches.length-1; i>=0; i-- ) {
         touchLocation = getRelativeTouchCoords(touches[i]);
 
-        if( touchLocation.x < game.gameFieldRect().width*(1/5) ) {
-            playerAction = "moveLeft";
+        if( touchLocation.x < canvas.width*(1/2) ) {
+            // playerAction = left;
+            activeKeys[37] = true; // go left
         }
-        else if( touchLocation.x < game.gameFieldRect().width*(4/5) ) {
-            playerAction = "fire";
+        else if( touchLocation.x > canvas.width*(4/5) ) {
+            // playerAction = "right";
+            activeKeys[39] = true; // go right
         }
         else {
-            playerAction = "moveRight";
+            // playerAction = fire;
+            activeKeys[32] = true; // default is to fire
         }
-
-        playerActions.startAction(touches[i].identifier, playerAction);
     }
 }
 
@@ -136,8 +143,11 @@ function touchEnd(e) {
     var touches = e.changedTouches;
     e.preventDefault();
 
-    for( var i=touches.length-1; i>=0; i-- ) {
-        playerActions.endAction(touches[i].identifier);
+    // for( var i=touches.length-1; i>=0; i-- ) {
+    //     playerActions.endAction(touches[i].identifier);
+    // }
+    for (var key in activeKeys) {
+      activeKeys[key] = false;
     }
 }
 // *****************************GLOBAL VARIABLES*******************************
@@ -336,6 +346,7 @@ var gameArea = (function() { // Singleton
 
       //renderer.clear(); // Make sure canvas is blank
       toggle(canvas);   // Make canvas visible
+      // toggle(nav); // Hide navigational links
       // Make demo say game's running, make button say stop (toggles play/stop)
       document.getElementById("demo").innerHTML = "Game start";
       document.getElementById("play-button").innerHTML = "Stop";
@@ -347,6 +358,7 @@ var gameArea = (function() { // Singleton
       startLoop = false;
       // As of now, toggling button to end the game will lose all progress
       toggle(canvas); // Hide canvas
+      // toggle(nav); // Show navigational links, now that game is paused
       document.getElementById("demo").innerHTML = "Game Over";
       document.getElementById("play-button").innerHTML = "Play";
       this.reset(); // Reset important variables
