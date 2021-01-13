@@ -124,11 +124,11 @@ function touchStart(e) {
     for( var i=touches.length-1; i>=0; i-- ) {
         touchLocation = getRelativeTouchCoords(touches[i]);
 
-        if( touchLocation.x < canvas.width*(1/2) ) {
+        if( touchLocation.x < canvas.width*(1/3) ) {
             // playerAction = left;
             activeKeys[37] = true; // go left
         }
-        else if( touchLocation.x > canvas.width*(4/5) ) {
+        else if( touchLocation.x > canvas.width*(2/3) ) {
             // playerAction = "right";
             activeKeys[39] = true; // go right
         }
