@@ -18,7 +18,7 @@
 
 // Hold current width and height of the canvas, respectively
 let w1, h1;
-// let nav; // holds  navigational links found in the home page (image links and otherwise)
+let nav; // holds  navigational links found in the home page (image links and otherwise)
 //*********************************LISTENERS***********************************
 // Function that toggles an HTML element's visibility (used on canvas)
 const toggle = (elem) => {
@@ -55,7 +55,7 @@ window.addEventListener("resize", function(event) {
 // Resize canvas from the get-go
 window.addEventListener("load", function(event) {
   // get the href's in the main page used for navigation
-  // nav = document.getElementsByClassName("link");
+  nav = document.getElementsByClassName("link");
 
   canvas = document.getElementById("game-canvas");
   ctx = canvas.getContext("2d");
@@ -347,6 +347,11 @@ var gameArea = (function() { // Singleton
       //renderer.clear(); // Make sure canvas is blank
       toggle(canvas);   // Make canvas visible
       // toggle(nav); // Hide navigational links
+      // Hide navigational links
+      for(let i = 0; i < nav.length; i ++) {
+        // toggle(nav[i]); // Doesn't quite work, bars shift because nav icons/links stop taking up space
+        nav[i].style.visibility = "hidden";
+      }
       // Make demo say game's running, make button say stop (toggles play/stop)
       document.getElementById("demo").innerHTML = "Game start";
       document.getElementById("play-button").innerHTML = "Stop";
@@ -358,7 +363,11 @@ var gameArea = (function() { // Singleton
       startLoop = false;
       // As of now, toggling button to end the game will lose all progress
       toggle(canvas); // Hide canvas
-      // toggle(nav); // Show navigational links, now that game is paused
+      // Display navigational links
+      for(let i = 0; i < nav.length; i ++) {
+        // toggle(nav[i]);
+        nav[i].style.visibility = "visible";
+      }
       document.getElementById("demo").innerHTML = "Game Over";
       document.getElementById("play-button").innerHTML = "Play";
       this.reset(); // Reset important variables
