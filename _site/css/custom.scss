@@ -346,9 +346,31 @@ background: linear-gradient(to top, #071957, $mid-color, black);
 }
 
 #play-button {
+  background-color: #ccccff;
+  border-radius: 15px; /* rounds button corners */
+  /*box-shadow: 2px 5px #eae0c8;*/
+  color: gray;
+  /*Hovering over the button changes cursor to a pointing hand */
+  cursor: pointer;
+  font-weight: bold;
+  opacity: 0.75;
+  outline: none;
+  margin: 0.25vw 0.25vh;
+  padding: 1vw 1vh;
   /*Needs absolute positioning to work even inside the canvas*/
   position: absolute;
-  z-index: 3;
+  text-align: center;
+  text-decoration: none;
+  transition: 0.8s; /* time it takes to change (if it changes) any property */
+  z-index: 3; /* highest in page */
+
+  &:hover {
+    opacity: 1;
+  }
+  &:active {
+    background-color: #d2d2d2;
+    font-weight: 999;
+  }
 }
 
 html, body {
