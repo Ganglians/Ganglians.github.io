@@ -95,6 +95,9 @@
   /*Animated bars that go right under the navigation links*/
 }
 .home .hero-two .links li a {
+  animation-name: fadein;
+  animation-timing-function: ease-in;
+  animation-duration: 1s;
   /*Remove traditional link style*/
   text-decoration: none;
   color: #ff00cc;
@@ -108,16 +111,35 @@
   position: relative;
   bottom: 4vh;
 }
+@keyframes fadein {
+  0% {
+    opacity: 0%;
+  }
+  100% {
+    opacity: 100%;
+  }
+}
 .home .hero-two .links li a:hover, .home .hero-two .links li a:active {
   color: #bf00ff;
 }
 .home .hero-two .links li .icon {
+  animation-name: fadein;
+  animation-timing-function: ease-in;
+  animation-duration: 1s;
   /*display: block;*/
   /*width: 40px;*/
   /*height: 20px;*/
   width: 3vw;
   /*Default color*/
   filter: invert(15%) sepia(94%) saturate(3967%) hue-rotate(305deg) brightness(111%) contrast(122%);
+}
+@keyframes fadein {
+  0% {
+    opacity: 0%;
+  }
+  100% {
+    opacity: 100%;
+  }
 }
 .home .hero-two .links li .icon:hover, .home .hero-two .links li .icon:active {
   filter: invert(14%) sepia(99%) saturate(4163%) hue-rotate(280deg) brightness(109%) contrast(123%);

@@ -133,8 +133,24 @@ background: linear-gradient(to top, #071957, $mid-color, black);
     box-shadow: 0vw 0vh 4vh 0.25vh $bar-color;
   }
 
+  @mixin fadein() {
+    @keyframes fadein {
+      0% {
+        opacity: 0%;
+      }
+      100% {
+        opacity: 100%;
+      }
+    }
+
+    animation-name: fadein;
+    animation-timing-function:ease-in;
+    animation-duration: 1s;
+  }
+
   /*Navigaiton links*/
   .links {
+
     /*Spaces words out to take up whole width*/
     display: flex;
     justify-content: space-between;
@@ -147,6 +163,7 @@ background: linear-gradient(to top, #071957, $mid-color, black);
       $bw: 4vw;  /*width*/
 
       a {
+        @include fadein();
         /*Remove traditional link style*/
         text-decoration: none;
         color: $pink;
@@ -168,6 +185,7 @@ background: linear-gradient(to top, #071957, $mid-color, black);
 
       /*img {*/
         .icon {
+          @include fadein();
           /*display: block;*/
           /*width: 40px;*/
           /*height: 20px;*/
