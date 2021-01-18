@@ -133,6 +133,7 @@ background: linear-gradient(to top, #071957, $mid-color, black);
     box-shadow: 0vw 0vh 4vh 0.25vh $bar-color;
   }
 
+  /*Makes an element start invisible, then manifest*/
   @mixin fadein() {
     @keyframes fadein {
       0% {
@@ -148,6 +149,24 @@ background: linear-gradient(to top, #071957, $mid-color, black);
     animation-duration: 1s;
   }
 
+  @mixin typein() {
+    border-right: .15em solid orange;
+    overflow: hidden;
+    white-space: nowrap;
+    margin: 0 auto;
+
+    animation: typewriter 3.5s steps(40, end),
+               blink-caret 1s step-end infinite;
+    @keyframes typewriter{
+      from{ width: 0; }
+      to  { width: 100%; }
+    }
+    @keyframes blink-caret {
+      from, to { border-color: transparent; }
+      50% { border-color: orange; }
+    }
+  }
+
   /*Navigaiton links*/
   .links {
 
@@ -158,12 +177,12 @@ background: linear-gradient(to top, #071957, $mid-color, black);
     /*Links with bars*/
     li {
       list-style: none;
+      /*Variables*/
       /*Bar dimensions*/
       $bh: 14vh; /*height*/
       $bw: 4vw;  /*width*/
 
       a {
-        @include fadein();
         /*Remove traditional link style*/
         text-decoration: none;
         color: $pink;
@@ -183,22 +202,26 @@ background: linear-gradient(to top, #071957, $mid-color, black);
         bottom: 4vh;
       }
 
-      /*img {*/
-        .icon {
-          @include fadein();
-          /*display: block;*/
-          /*width: 40px;*/
-          /*height: 20px;*/
-          width: 3vw;
-          /*Default color*/
-          filter: invert(15%) sepia(94%) saturate(3967%) hue-rotate(305deg) brightness(111%) contrast(122%);
+      .icon {
+        @include fadein();
+        /*display: block;*/
+        /*width: 40px;*/
+        /*height: 20px;*/
+        width: 3vw;
+        /*Default color*/
+        filter: invert(15%) sepia(94%) saturate(3967%) hue-rotate(305deg) brightness(111%) contrast(122%);
 
-          &:hover,
-          &:active {
-            filter: invert(14%) sepia(99%) saturate(4163%) hue-rotate(280deg) brightness(109%) contrast(123%);
-          }
+        &:hover,
+        &:active {
+          filter: invert(14%) sepia(99%) saturate(4163%) hue-rotate(280deg) brightness(109%) contrast(123%);
         }
-      /*}*/
+      }
+
+      .type-effect {
+        @include typein();
+        /*@include fadein();*/
+      }
+
       /*Animated bars that go right under the navigation links*/
       .bar1 {
         @include parallelogram($bh, $bw, #9933ff, #cc00ff);

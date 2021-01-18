@@ -49,6 +49,7 @@
   position: absolute;
   /*Set up soundbar positioning and animation, can take a 'glow' color and 
   animation delay as arguments*/
+  /*Makes an element start invisible, then manifest*/
   /*Navigaiton links*/
 }
 .home .hero-two .mountains {
@@ -87,17 +88,13 @@
 }
 .home .hero-two .links li {
   list-style: none;
+  /*Variables*/
   /*Bar dimensions*/
   /*height*/
   /*width*/
-  /*img {*/
-  /*}*/
   /*Animated bars that go right under the navigation links*/
 }
 .home .hero-two .links li a {
-  animation-name: fadein;
-  animation-timing-function: ease-in;
-  animation-duration: 1s;
   /*Remove traditional link style*/
   text-decoration: none;
   color: #ff00cc;
@@ -110,14 +107,6 @@
           }*/
   position: relative;
   bottom: 4vh;
-}
-@keyframes fadein {
-  0% {
-    opacity: 0%;
-  }
-  100% {
-    opacity: 100%;
-  }
 }
 .home .hero-two .links li a:hover, .home .hero-two .links li a:active {
   color: #bf00ff;
@@ -143,6 +132,30 @@
 }
 .home .hero-two .links li .icon:hover, .home .hero-two .links li .icon:active {
   filter: invert(14%) sepia(99%) saturate(4163%) hue-rotate(280deg) brightness(109%) contrast(123%);
+}
+.home .hero-two .links li .type-effect {
+  border-right: 0.15em solid orange;
+  overflow: hidden;
+  white-space: nowrap;
+  margin: 0 auto;
+  animation: typewriter 3.5s steps(40, end), blink-caret 1s step-end infinite;
+  /*@include fadein();*/
+}
+@keyframes typewriter {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+@keyframes blink-caret {
+  from, to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: orange;
+  }
 }
 .home .hero-two .links li .bar1 {
   width: 4vw;
