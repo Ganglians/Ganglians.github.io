@@ -139,7 +139,6 @@
   white-space: nowrap;
   margin: 0 auto;
   animation: typewriter 3.5s steps(40, end), blink-caret 1s step-end infinite;
-  /*@include fadein();*/
 }
 @keyframes typewriter {
   from {
@@ -337,7 +336,7 @@
   /*Set a perspective from where to observe the transformed grid*/
   perspective: 10vh;
   /*z-index: -1;*/
-  /*overflow: hidden;*/
+  overflow: hidden;
   /* .grid END */
 }
 .home .hero-three .plane .grid {

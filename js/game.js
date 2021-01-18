@@ -55,7 +55,7 @@ window.addEventListener("resize", function(event) {
 // Resize canvas from the get-go
 window.addEventListener("load", function(event) {
   // get the href's in the main page used for navigation
-  nav = document.getElementsByClassName("link");
+  nav = document.getElementsByClassName("fadeOnStart");
 
   canvas = document.getElementById("game-canvas");
   ctx = canvas.getContext("2d");

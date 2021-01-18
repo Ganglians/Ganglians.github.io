@@ -169,7 +169,6 @@ background: linear-gradient(to top, #071957, $mid-color, black);
 
   /*Navigaiton links*/
   .links {
-
     /*Spaces words out to take up whole width*/
     display: flex;
     justify-content: space-between;
@@ -219,7 +218,6 @@ background: linear-gradient(to top, #071957, $mid-color, black);
 
       .type-effect {
         @include typein();
-        /*@include fadein();*/
       }
 
       /*Animated bars that go right under the navigation links*/
@@ -281,7 +279,7 @@ background: linear-gradient(to top, #071957, $mid-color, black);
     /*Set a perspective from where to observe the transformed grid*/
     perspective: 10vh;
     /*z-index: -1;*/
-    /*overflow: hidden;*/
+    overflow: hidden;
 
     .grid {
       /*position: absolute;*/
