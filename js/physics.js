@@ -40,7 +40,9 @@ var physics = (function () {
         if (shot.hitbox().intersect(token.hitbox())) {
           if(shot.type == "enemyShot" && token.type == "player" || shot.type == "playerShot" && token.type == "enemy") {
             gameArea.willDelete().push(shot);
-            gameArea.willDelete().push(token);
+            if(--token.hp <= 0) {
+              gameArea.willDelete().push(token);
+            }
           }
         }
       });
