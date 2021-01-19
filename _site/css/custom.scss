@@ -1,5 +1,10 @@
 /*Home page's scss styling*/
+@font-face {
+  font-family: "gamePixies";
+  src: url("/fonts/Gamepixies-8MO6n.ttf") format('truetype');
+}
 .home {
+
 /*Mixins, variables, etc.*/
 /*Colors*/
 $aqua:      #35FBFC;
@@ -385,12 +390,13 @@ background: linear-gradient(to top, #071957, $mid-color, black);
 }
 
 #play-button {
-  background-color: #ccccff;
+  /*background-color: #ccccff;*/
   border-radius: 15px; /* rounds button corners */
   /*box-shadow: 2px 5px #eae0c8;*/
   color: gray;
   /*Hovering over the button changes cursor to a pointing hand */
   cursor: pointer;
+  font-family: "gamePixies";
   font-weight: bold;
   opacity: 0.75;
   outline: none;
@@ -399,7 +405,7 @@ background: linear-gradient(to top, #071957, $mid-color, black);
   /*Needs absolute positioning to work even inside the canvas*/
   position: absolute;
   text-align: center;
-  text-decoration: none;
+  /*text-decoration: none;*/
   transition: 0.8s; /* time it takes to change (if it changes) any property */
   z-index: 3; /* highest in page */
 

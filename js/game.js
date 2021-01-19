@@ -82,25 +82,25 @@ window.addEventListener('keyup', function(event) {
 
 // Touch
 function getRelativeTouchCoords(touch) {
-    function getOffsetLeft( elem ) {
+    function getOffsetLeft(elem) {
         var offsetLeft = 0;
         do {
-            if( !isNaN( elem.offsetLeft ) ) {
+            if(!isNaN(elem.offsetLeft)) {
                 offsetLeft += elem.offsetLeft;
             }
         }
-        while( elem = elem.offsetParent );
+        while(elem = elem.offsetParent);
         return offsetLeft;
     }
 
-    function getOffsetTop( elem ) {
+    function getOffsetTop(elem) {
         var offsetTop = 0;
         do {
-            if( !isNaN( elem.offsetTop ) ) {
+            if(!isNaN(elem.offsetTop)) {
                 offsetTop += elem.offsetTop;
             }
         }
-        while( elem = elem.offsetParent );
+        while(elem = elem.offsetParent);
         return offsetTop;
     }
 
@@ -123,18 +123,18 @@ function touchStart(e) {
 
     for( var i=touches.length-1; i>=0; i-- ) {
         touchLocation = getRelativeTouchCoords(touches[i]);
-
-        if( touchLocation.x < canvas.width*(1/3) ) {
+        // divide touchscreen into thirds
+        if(touchLocation.x < canvas.width*(1/3)) {
             // playerAction = left;
             activeKeys[37] = true; // go left
         }
-        else if( touchLocation.x > canvas.width*(2/3) ) {
+        else if(touchLocation.x > canvas.width*(2/3)) {
             // playerAction = "right";
             activeKeys[39] = true; // go right
         }
         else {
             // playerAction = fire;
-            activeKeys[32] = true; // default is to fire
+            activeKeys[32] = true; // default is to fire (pressing the center)
         }
     }
 }
