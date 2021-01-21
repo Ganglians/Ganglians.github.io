@@ -192,6 +192,9 @@ let dt = 0, oldTimeStamp = 0, fps;
 // TODO: Reset timeStamp(?)
 let reqId; // Holds the requestId upon calling requestAnimationFrame
 
+// Determines the color of an enemy token after it's dropped a hit point 
+let hitColor = ["green", "yellow", "orange"];
+
 //*****************************OBJECTS/FUNCTIONS*******************************
 function areEqual(obj1, obj2) {
   /* quick & dirty way to do comparison between two objects of same type (if their collective strings match, then all their values, including deep nested ones, are all the same) */
@@ -672,6 +675,7 @@ function invaderToken(position, width, height, direction, speed, color = "blue",
   let shotChance = 1; // % chance of firing a shot
 
   this.update = function(dt = 0) {
+    this.color = hitColor[this.hp - 1];
     // update behavior according to positioning
     let vTop      =  gameArea.invaderFieldHitbox().top();
     let vLeftmost =  gameArea.invaderFieldHitbox().left();
