@@ -302,13 +302,13 @@ var renderer = (function() {
     });
 
     // for TESTing HITBOX, draw invaders' collective hitbox
-    let ifh = gameArea.invaderFieldHitbox();
-    ctx.beginPath();
-    ctx.globalAlpha = 1;
-    ctx.linewidth = "5";
-    ctx.strokeStyle = "white";
-    ctx.rect(ifh.x, ifh.y, ifh.width, ifh.height);
-    ctx.stroke();
+    // let ifh = gameArea.invaderFieldHitbox();
+    // ctx.beginPath();
+    // ctx.globalAlpha = 1;
+    // ctx.linewidth = "5";
+    // ctx.strokeStyle = "white";
+    // ctx.rect(ifh.x, ifh.y, ifh.width, ifh.height);
+    // ctx.stroke();
   }
 
   function _clear() { // clear entire canvas
@@ -412,6 +412,8 @@ var gameArea = (function() { // Singleton
 
     // Calculate FPS (for the display)
     fps = Math.round(1/dt);
+
+    _invadarr.populated(dt);
 
     // A) Update Physics
     physics.update(dt); // time should only be observable on gameArea
@@ -910,6 +912,12 @@ function invaderArray() { // 2d invader array
       }
       drawAt = edgeSpace;
       y += rowSpace; // GRID
+    }
+  }
+
+  this.populated = function(dt = 0) {
+    if(this.a.length == 0) {
+       this.setup();
     }
   }
 
