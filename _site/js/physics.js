@@ -38,10 +38,17 @@ var physics = (function () {
 
       gameArea.shots().forEach(function(shot) {
         if (shot.hitbox().intersect(token.hitbox())) {
-          if(shot.type == "enemyShot" && token.type == "player" || shot.type == "playerShot" && token.type == "enemy") {
-            gameArea.willDelete().push(shot);
+          gameArea.willDelete().push(shot);
+          if(shot.type == "enemyShot" && token.type == "player") {
             if(--token.hp <= 0) {
               gameArea.willDelete().push(token);
+            }
+          }
+
+          if(shot.type == "playerShot" && token.type == "enemy") {
+            if(--token.hp <= 0) {
+              gameArea.willDelete().push(token);
+              gameArea.player1().score += 1;
             }
           }
         }

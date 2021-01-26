@@ -205,7 +205,7 @@ function areEqual(obj1, obj2) {
 // Load game sprites/images
 var imgRepo = new function(nImages = 1) { // Class instance
   // IMAGE DEFINITIONS
-  this.player_token = new Image();
+  this.player_token_img = new Image();
   
   // IMAGE LOADING
   // Don't start game until all images are done loading
@@ -219,13 +219,13 @@ var imgRepo = new function(nImages = 1) { // Class instance
     }
   }
 
-  this.player_token.onload = function() {
+  this.player_token_img.onload = function() {
     // Increment total loaded images by one when player token has been sourced
     imgLoaded();
   }
   // SET IMAGE SOURCES
-  this.player_token.src = "/images/token-player1.svg";
-  // this.player_token.src = "/images/boy01.png";
+  this.player_token_img.src = "/images/token-player1.svg";
+  // this.player_token_img.src = "/images/boy01.png";
 };
 
 // Renderer object
@@ -242,7 +242,8 @@ var renderer = (function() {
   }
 
   function _drawPlayer(token) { // render player token
-    ctx.drawImage(imgRepo.player_token, token.position.x - token.width/2, 
+    ctx.globalAlpha = 0.7; // Opacity
+    ctx.drawImage(imgRepo.player_token_img, token.position.x - token.width/2, 
       token.position.y - token.height/2, token.width, token.height);
   }
 
@@ -459,6 +460,7 @@ var gameArea = (function() { // Singleton
 
     // [ 4 ] DRAW  (CANVAS)
     renderer.render();
+    score();
     framesPerSecond(); // Just a display, doesn't contribute to game 
 
     // Keep requesting further iterations of 'gameLoop' to animate game
@@ -761,7 +763,9 @@ function playerToken(position, width, height, direction, speed, /* BULL1->speed 
   this.hp = hp; // hit points, number of bullets player can take, die = game over
   this.fireRate  = fireRate;
 
-  var cooldown = 0;
+  let cooldown = 0;
+  this.score = 0;
+
 
   this.setup = function() { // RELOCATION: Moving setup to renderer
     // Set up player token's positioning (bottom-center)
