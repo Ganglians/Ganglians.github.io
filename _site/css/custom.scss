@@ -155,20 +155,21 @@ background: linear-gradient(to top, #071957, $mid-color, black);
   }
 
   @mixin typein() {
-    border-right: .15em solid orange;
+    border-right: .15em solid transparent;
     overflow: hidden;
     white-space: nowrap;
     margin: 0 auto;
+    /*letter-spacing: 1.5em;*/
 
-    animation: typewriter 3.5s steps(40, end),
-               blink-caret 1s step-end infinite;
+    animation: typewriter 1s steps(10, end),
+               blink-caret 1s step-end 2;
     @keyframes typewriter{
       from{ width: 0; }
       to  { width: 100%; }
     }
     @keyframes blink-caret {
-      from, to { border-color: transparent; }
-      50% { border-color: orange; }
+      from, to { border-color: orange; }
+      50% { border-color: transparent; }
     }
   }
 
@@ -187,6 +188,7 @@ background: linear-gradient(to top, #071957, $mid-color, black);
       $bw: 4vw;  /*width*/
 
       a {
+        display: block;
         /*Remove traditional link style*/
         text-decoration: none;
         color: $pink;

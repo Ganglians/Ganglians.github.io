@@ -38,7 +38,7 @@ var physics = (function () {
 
       gameArea.shots().forEach(function(shot) {
         if (shot.hitbox().intersect(token.hitbox())) {
-          gameArea.willDelete().push(shot);
+          gameArea.willDelete().push(shot); // shot disappears because of impact
           if(shot.type == "enemyShot" && token.type == "player") {
             if(--token.hp <= 0) {
               gameArea.willDelete().push(token);
