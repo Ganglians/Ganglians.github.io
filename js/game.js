@@ -89,7 +89,7 @@ function getRelativeTouchCoords(touch) {
                 offsetLeft += elem.offsetLeft;
             }
         }
-        while(elem = elem.offsetParent);
+        while(elem = elem.offsetParent); // waits for touch
         return offsetLeft;
     }
 
@@ -100,7 +100,7 @@ function getRelativeTouchCoords(touch) {
                 offsetTop += elem.offsetTop;
             }
         }
-        while(elem = elem.offsetParent);
+        while(elem = elem.offsetParent); // waits for touch
         return offsetTop;
     }
 
@@ -225,7 +225,7 @@ var imgRepo = new function(nImages = 1) { // Class instance
   }
   // SET IMAGE SOURCES
   this.player_token_img.src = "/images/token-player1.svg";
-  // this.player_token_img.src = "/images/boy01.png";
+  // this.player_token_img.src = "/images/ship.png";
 };
 
 // Renderer object
@@ -577,7 +577,7 @@ function rectangle(x = 0, y = 0, width = 1, height = 1) {
   }
 }
 
-// TODO: Conglomerate hitbox of all enemies (used to detect invaders' contact w/ canvas boundary to avoid having to re-calculate each time a leftmost or rightmost columns of invaders disappears entirely -> makes it easier to update a hitbox than to update each individually and easier to debug)
+// TODO: Conglomerate hitbox of all enemies (used to detect invaders' contact w/ canvas boundary to avoid having to re-calculate each time a leftmost or rightmost columns of invaders disappears entirely -> makes it easier to update a single hitbox than to update each individually and easier to debug)
 // rectUnion returns a rectangle that encompasses the two rectangles used as arguments in the r1, r2 parameters:
 //       w i d t h
 // (0, 0) -- -- -- > (n, 0)  _x
