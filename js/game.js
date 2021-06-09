@@ -173,7 +173,7 @@ let up    = new vector2d( 0, -1),
     idle = new vector2d(  0,  0);
 
 // Ensures game only starts every other click (start -> reset & stop -> start)
-var go = true;
+// var go = true;
 
 // Game canvas reference used throughout many object methods
 // Canvas coordinates are as follows:
@@ -216,6 +216,7 @@ var imgRepo = new function(nImages = 1) { // Class instance
     if(nLoaded ++ == nImages) {
       // window.init(); // Start game TODO: Create a title screen (and only load
                         // game when all images are loaded)
+      // Possible TODO: Set a boolean to only allow game to start, from the game title, when all game images have loaded                  
     }
   }
 
@@ -340,13 +341,16 @@ var gameArea = (function() { // Singleton
   let _willDelete = []; // Holds all tokens marked for deletion
 
   // gameArea variables:
+  // Ensures game loop only starts running every other click (start -> reset & stop -> start)
+  // let go = true;
   let startLoop = false; // Starts/stops gameloop
   // --------------------------------------------------------------------------
 
   function _tog() {
     //BUG1
-    if (go == true) { // Initiate game    
-      go = false;
+    //if (go == true) { // Initiate game
+    //  go = false;    
+    if(startLoop == false) { // Initiate game
       startLoop = true;
 
       //renderer.clear(); // Make sure canvas is blank
@@ -364,7 +368,7 @@ var gameArea = (function() { // Singleton
     } //BUG1 
     else { // End game, reset relevant variables
       timeStamp = 0; // TODO: Reset timeStamp(?)
-      go = true;
+      //go = true;
       startLoop = false;
       // As of now, toggling button to end the game will lose all progress
       toggle(canvas); // Hide canvas
@@ -771,6 +775,7 @@ function playerToken(position, width, height, direction, speed, /* BULL1->speed 
     // Set up player token's positioning (bottom-center)
     // Subtracting(read: displacing) by player token dimensions to accomodate 
     // for token's size 
+    this.score = 0;
     this.position.x = canvas.width/2;
     this.position.y = canvas.height - this.height/2;
   }
