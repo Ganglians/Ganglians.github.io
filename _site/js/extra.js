@@ -15,3 +15,24 @@ function score() { // Displays player score on canvas
   ctx.fillStyle = "orange";
   ctx.fillText("score: " + gameArea.player1().score, canvas.width - 100, 0 + 20);
 }
+
+function objectIsEmpty(object){
+   var isEmpty=true;
+   if(JSON.stringify(object)==JSON.stringify({})){
+     // Object is Empty
+     isEmpty = true;
+   }
+   else{
+     //Object is Not Empty
+     isEmpty = false;
+   }
+   return isEmpty;
+}
+
+function clearObject(object) {
+  // The 'responsible' way to clear object (no worries about garbage collection from legacy browsers)
+  for (let property in object) {
+    delete object[property];
+  }
+
+}

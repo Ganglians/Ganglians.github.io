@@ -158,6 +158,7 @@ var holding = '';
 
 // Listeners' pertinent keycodes 
 const Space      = 32; // the spacebar's keycode
+const Enter      = 13;
 const ArrowLeft  = 37;
 const ArrowUp    = 38;
 const ArrowRight = 39;
@@ -344,6 +345,7 @@ var gameArea = (function() { // Singleton
   // Ensures game loop only starts running every other click (start -> reset & stop -> start)
   // let go = true;
   let startLoop = false; // Starts/stops gameloop
+  let titleCard = true; // Displays game title until player hits <Enter>
   // --------------------------------------------------------------------------
 
   function _tog() {
@@ -393,6 +395,12 @@ var gameArea = (function() { // Singleton
     canvas.width  = window.innerWidth;
     canvas.height = window.innerHeight;
 
+    // Make sure no active keys registered
+    clearObject(activeKeys);
+
+
+    // TODO: "LOADING" Card while everything loads
+
     _player1.setup();
     _entities.push(_player1); // Add player to list of total gameArea entities
 
@@ -402,6 +410,7 @@ var gameArea = (function() { // Singleton
     // looping and time the game loop to be in-sync with the browser repaint
     oldTimeStamp = timeStamp; // Make relative time stamp start at zero
     startLoop = true;
+    titleCard = true; // Game starts with title card
     window.requestAnimationFrame(_gameLoop);
   }
 
@@ -409,66 +418,84 @@ var gameArea = (function() { // Singleton
     if(!startLoop) { // Conditional that stops loop 
       return;
     }
-    // [ 1 ] UPDATE
-    //delta t. the difference in time (seconds) between this & last frame
-    dt = (timeStamp - oldTimeStamp)/1000;
-    dt = Math.min(0.1, dt);
-    oldTimeStamp  = timeStamp;
 
-    // Calculate FPS (for the display)
-    fps = Math.round(1/dt);
+    else if(titleCard) { // Display game title
+      // TODO: Add "start" instances for touchscreen
+      // let keyPress = Object.keys(activeKeys.length);
+      // if(activeKeys[Enter]) { // Start game when user presses enter
+      if(!objectIsEmpty(activeKeys)) { // Start game when user presses enter
+        titleCard = false;
+      }
+      renderer.clear();
+      ctx.font = "15px" + " gamePixies"; // custom font
+      ctx.textAlign = "center";
+      ctx.fillStyle = "orange";
+      ctx.fillText("Start", 500, 0 + 20);
+    }
 
-    _invadarr.populated(dt);
+    else {
+      // [ 1 ] UPDATE
+      //delta t. the difference in time (seconds) between this & last frame
+      dt = (timeStamp - oldTimeStamp)/1000;
+      dt = Math.min(0.1, dt);
+      oldTimeStamp  = timeStamp;
 
-    // A) Update Physics
-    physics.update(dt); // time should only be observable on gameArea
+      // Calculate FPS (for the display)
+      fps = Math.round(1/dt);
 
-    // B) Get the current hitbox surrounding every invader
-    _invaderFieldHitbox = _invadarr.a.reduce(function(total, invader) {
-      return rectUnion(total, invader.hitbox());
-    }, undefined);
+      _invadarr.populated(dt);
 
-    // C) Update all tokens/game objects
-    // TODO: Simplify by just using gameArea's _entities and iterating through that (after getting bullets over here)
-    _invadarr.update(dt);
-    _player1.update(dt);
-    // PHY
-    physics.shotKeeper.update(dt);
+      // A) Update Physics
+      physics.update(dt); // time should only be observable on gameArea
+
+      // B) Get the current hitbox surrounding every invader
+      _invaderFieldHitbox = _invadarr.a.reduce(function(total, invader) {
+        return rectUnion(total, invader.hitbox());
+      }, undefined);
+
+      // C) Update all tokens/game objects
+      // TODO: Simplify by just using gameArea's _entities and iterating through that (after getting bullets over here)
+      _invadarr.update(dt);
+      _player1.update(dt);
+      // PHY
+      physics.shotKeeper.update(dt);
 
 
-    _cleanup(); // Remove dead tokens
-    _willDelete = []; // reset the list after cleaning up
+      _cleanup(); // Remove dead tokens
+      _willDelete = []; // reset the list after cleaning up
 
-    // attacks
-    // TODO: Make this part of the _entity update
-    // _invadarr.shoot();
+      // attacks
+      // TODO: Make this part of the _entity update
+      // _invadarr.shoot();
 
-    document.getElementById("bull").innerHTML = "bullets: " + _shots.length;
+      document.getElementById("bull").innerHTML = "bullets: " + _shots.length;
 
-    // [ 2 ] COLLISION DETECTION
-    // [Bullet => Check for collision]
-    // TODO: Cassie (i.e. player token collision)
-    // [Bullets => iterate invaders]
+      // [ 2 ] COLLISION DETECTION
+      // [Bullet => Check for collision]
+      // TODO: Cassie (i.e. player token collision)
+      // [Bullets => iterate invaders]
 
-    // Invader collision check //TODO: Move to physics
-    // Check if any player bullets have hit any invaders so that they can get deleted
-    _invadarr.a.forEach(function(invader) {
-      physics.shotKeeper.collisionCheck(invader);
-    });
+      // Invader collision check //TODO: Move to physics
+      // Check if any player bullets have hit any invaders so that they can get deleted
+      _invadarr.a.forEach(function(invader) {
+        physics.shotKeeper.collisionCheck(invader);
+      });
 
-    // TODO: Check if any invader bullets have hit the player, if HP reaches zero, game over
-    // physics.shotKeeper.collisionCheck(_player1);
+      // TODO: Check if any invader bullets have hit the player, if HP reaches zero, game over
+      // physics.shotKeeper.collisionCheck(_player1);
 
-    // [ 3 ] CLEAR (CANVAS)
-    renderer.clear();
+      // [ 3 ] CLEAR (CANVAS)
+      renderer.clear();
 
-    // [ 4 ] DRAW  (CANVAS)
-    renderer.render();
-    score();
-    framesPerSecond(); // Just a display, doesn't contribute to game 
+      // [ 4 ] DRAW  (CANVAS)
+      renderer.render();
+      score();
+      framesPerSecond(); // Just a display, doesn't contribute to game 
 
-    // Keep requesting further iterations of 'gameLoop' to animate game
-    // TODO: Reset timeStamp(?) Not sure if possible
+      // Keep requesting further iterations of 'gameLoop' to animate game
+      // TODO: Reset timeStamp(?) Not sure if possible
+    }
+
     window.requestAnimationFrame(_gameLoop);
   }
 
@@ -769,7 +796,6 @@ function playerToken(position, width, height, direction, speed, /* BULL1->speed 
 
   let cooldown = 0;
   this.score = 0;
-
 
   this.setup = function() { // RELOCATION: Moving setup to renderer
     // Set up player token's positioning (bottom-center)
