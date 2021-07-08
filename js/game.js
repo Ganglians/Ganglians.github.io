@@ -43,6 +43,15 @@ window.addEventListener("resize", function(event) {
     // entity.speed.y *= h2/h1;
   });
 
+  // Update gameArea's text objects so that their font sizes/positioning lines up with new canvas size
+  gameArea.text().forEach(function(text) {
+    // text.width      *= w2/w1;
+    // text.height     *= h2/h1;
+    text.fontSize   *= w2/w1;
+    text.position.x *= w2/w1;
+    text.position.y *= h2/h1;
+  });
+
   // The resized window becomes the new current window (with w1 = width, h1 = height)
   h1 = h2;
   w1 = w2;
@@ -197,10 +206,6 @@ let reqId; // Holds the requestId upon calling requestAnimationFrame
 let hitColor = ["green", "yellow", "orange"];
 
 //*****************************OBJECTS/FUNCTIONS*******************************
-function areEqual(obj1, obj2) {
-  /* quick & dirty way to do comparison between two objects of same type (if their collective strings match, then all their values, including deep nested ones, are all the same) */
-  return JSON.stringify(obj1) == JSON.stringify(obj2);
-}
 
 // Images
 // Load game sprites/images
@@ -215,7 +220,7 @@ var imgRepo = new function(nImages = 1) { // Class instance
 
   let imgLoaded = function() {
     if(nLoaded ++ == nImages) {
-      // window.init(); // Start game TODO: Create a title screen (and only load
+      window.init(); // Start game TODO: Create a title screen (and only load
                         // game when all images are loaded)
       // Possible TODO: Set a boolean to only allow game to start, from the game title, when all game images have loaded                  
     }
@@ -232,6 +237,16 @@ var imgRepo = new function(nImages = 1) { // Class instance
 
 // Renderer object
 var renderer = (function() {
+  function _writeText(token) {
+    // Set up text style and alignment 
+    ctx.fillStyle = token.color;
+    ctx.textAlign = token.align;
+    // format looks like: 14vw consolas (for example)
+    ctx.font = token.fontSize + token.fontUnit + " " + token.font;
+
+    // Write the text at specified position
+    ctx.fillText(token.text, token.position.x, token.position.y);
+  }
   // methods to draw specific game tokens (they don't look through stored 
   // tokens)
                              // variable will be defined internally 
@@ -286,6 +301,9 @@ var renderer = (function() {
 
     // Draw all game tokens
     gameArea.entities().forEach(function(entity) {
+      // if(entity instanceof textToken) {
+      //   _writeText(entity);
+      // }
       if(entity instanceof playerToken) {
         _drawPlayer(entity);
         _drawRectOutline(entity.hitbox()); // for TESTing HITBOX
@@ -302,6 +320,11 @@ var renderer = (function() {
 
     gameArea.shots().forEach(function(shot) {
       _drawRectangle(shot);
+    });
+
+    // Draw all text boxes
+    gameArea.text().forEach(function(text) {
+      _writeText(text);
     });
 
     // for TESTing HITBOX, draw invaders' collective hitbox
@@ -334,18 +357,23 @@ var gameArea = (function() { // Singleton
   // variables
   // game token variables:
   let _entities = []; // Holds all (generic) game tokens used in the game
-  let _player1 = new playerToken(new vector2d(0, 0), 70, 70, idle, new vector2d(200, 5)); // 5 isn't active atm since direction is x axis only
+  let _player1  = new playerToken(new vector2d(0, 0), 70, 70, "red", "player", idle, new vector2d(200, 5)); // 5 isn't active atm since direction is x axis only
 
-  let _invadarr = new invaderArray();  // Manages enemy tokens 
+  let _text               = []; // Holds all text including menu
+  let _invadarr           = new invaderArray();  // Manages enemy tokens 
   let _invaderFieldHitbox = new rectangle(0, 0, 0, 0);
-  let _shots  =  []; // Holds all bullets
-  let _willDelete = []; // Holds all tokens marked for deletion
+  let _shots              = []; // Holds all bullets
+  let _willDelete         = []; // Holds all tokens marked for deletion
 
   // gameArea variables:
   // Ensures game loop only starts running every other click (start -> reset & stop -> start)
   // let go = true;
-  let startLoop = false; // Starts/stops gameloop
-  let titleCard = true; // Displays game title until player hits <Enter>
+  let startLoop   = false; // Starts/stops gameloop
+
+  // Title menu
+  let titleCard   = true;
+  let titleOpty   = 0; // Use for fade effects on game's title text
+  let subMenuOpty = 0; // Use for fade effects on game's title submenu
   // --------------------------------------------------------------------------
 
   function _tog() {
@@ -360,6 +388,7 @@ var gameArea = (function() { // Singleton
       // toggle(nav); // Hide navigational links
       // Hide navigational links
       for(let i = 0; i < nav.length; i ++) {
+        // Hide navigation menu
         // toggle(nav[i]); // Doesn't quite work, bars shift because nav icons/links stop taking up space
         nav[i].style.visibility = "hidden";
       }
@@ -370,7 +399,6 @@ var gameArea = (function() { // Singleton
     } //BUG1 
     else { // End game, reset relevant variables
       timeStamp = 0; // TODO: Reset timeStamp(?)
-      //go = true;
       startLoop = false;
       // As of now, toggling button to end the game will lose all progress
       toggle(canvas); // Hide canvas
@@ -406,6 +434,44 @@ var gameArea = (function() { // Singleton
 
     _invadarr.setup();
 
+    // Load title dialogue
+    // Make a text token, push it into the text array
+    //_text.push(new textToken()) //***
+    _text.push(new textToken( 
+            /*position:*/     new vector2d(
+                               canvas.width  / 2,
+                               canvas.height / 2
+                              ),
+            /*width:*/        10,
+            /*height:*/       10,
+            /*color:*/        "orange",
+            /*type:*/         "text",
+            /*text:*/         "The Game",
+            /*align:*/        "center",
+            /*font:*/         "gamePixies",
+            /*fontsize:*/     5,
+            /*fontUnit*/      "vw"));
+
+    // Title submenu text
+    // y += 40;
+    // ctx.font = "4vw" + " gamePixies";
+    // ctx.globalAlpha = 1;
+    // ctx.fillText("press any key to continue", x, y);
+    _text.push(new textToken( 
+            /*position:*/     new vector2d(
+                               canvas.width  / 2,
+                               canvas.height / 2 + 40
+                              ),
+            /*width:*/        10,
+            /*height:*/       10,
+            /*color:*/        "orange",
+            /*type:*/         "text",
+            /*text:*/         "press any key to continue",
+            /*align:*/        "center",
+            /*font:*/         "gamePixies",
+            /*fontsize:*/     4,
+            /*fontUnit*/      "vw"));
+
     // Initiate gameLoop, request function gives the browser some air while 
     // looping and time the game loop to be in-sync with the browser repaint
     oldTimeStamp = timeStamp; // Make relative time stamp start at zero
@@ -420,17 +486,17 @@ var gameArea = (function() { // Singleton
     }
 
     else if(titleCard) { // Display game title
-      // TODO: Add "start" instances for touchscreen
-      // let keyPress = Object.keys(activeKeys.length);
-      // if(activeKeys[Enter]) { // Start game when user presses enter
-      if(!objectIsEmpty(activeKeys)) { // Start game when user presses enter
+      // Will also work for touchscreen since its listener takes an input and 
+      if(!objectIsEmpty(activeKeys)) { // Start game when user presses any key
         titleCard = false;
+        // Mark all menu/title textboxes for deletion
+        _text.forEach(function(text) {
+          _willDelete.push(text);
+        });
+        
       }
       renderer.clear();
-      ctx.font = "15px" + " gamePixies"; // custom font
-      ctx.textAlign = "center";
-      ctx.fillStyle = "orange";
-      ctx.fillText("Start", 500, 0 + 20);
+      renderer.render();
     }
 
     else {
@@ -509,7 +575,8 @@ var gameArea = (function() { // Singleton
       return !_willDelete.includes(token);
     }
     // only let unmarked tokens filter through (tokens not in _willDelete arr)
-    _entities = _entities.filter(notIncluded);
+    _entities   = _entities.filter(notIncluded);
+    _text       = _text.filter(notIncluded);
     _invadarr.a = _invadarr.a.filter(notIncluded);
 
     _shots = _shots.filter(notIncluded);
@@ -521,6 +588,9 @@ var gameArea = (function() { // Singleton
   function _reset() {
     // All settings and game components are at their starting values
     //this.clear(); // Might not need this here
+
+    // Reset title effect variable
+    titleOpty = 0;
 
     // clearInterval(this.interval); // nothing should be moving/responding
     // clearAnimationFrame(this.animationFrame);
@@ -542,6 +612,7 @@ var gameArea = (function() { // Singleton
     // data accessors:
     entities:           function() { return _entities; },
     player1:            function() { return _player1;  },
+    text:               function() { return _text; },
     invadarr:           function() { return _invadarr; },
     invaderFieldHitbox: function() { return _invaderFieldHitbox; },
     shots:              function() { return _shots;    },
@@ -645,18 +716,47 @@ function rectUnion(r1, r2) {
   return new rectangle(x, y, width, height);          
 }
 
-// Generic game token
-function gameToken(position, width = 50, height = 70, direction, speed, color = "blue", type = "") {
+function token(position, width, height, color="blue", type="") {
   this.position   = position; // position vector (2d)
   this.width      = width;
   this.height     = height;
+  this.color      = color;
+  // token type of an instance, right now has empty string because it's not any specific type of token (game token, text token, etc)
+  this.type       = type;
+}
+
+function textToken(position, width, height, color="black", type = "text", text = "", align = "start", font = "monospace", fontSize = 5, fontUnit = "vw") {
+  token.call(this, position, width, height, color, type);
+  this.prototype = Object.create(token.prototype);
+
+  this.text     = text;
+  this.align    = align;
+  this.font     = font;
+  this.fontSize = fontSize;
+  this.fontUnit = fontUnit;
+}
+
+// Generic game token
+function gameToken(position, width = 50, height = 70, color = "blue", type = "", direction, speed) {
+  // Ref: javascript function call():
+  // call 'token' object with the instance that is 'this' gameToken object, to
+  // pass on the arguments 'gameToken' has in common with 'token'
+  token.call(this, position, width, height, color, type); 
+  // Inheritance:
+  // prototype method lets us add specified properties and methods to the 
+  // object that calls it. 
+  //gives it the property to create gameToken objects along with any new properties or methods it wants to add (since tokenoken.prototype is used as an argument)
+  this.prototype = Object.create(token.prototype); 
+
+  //this.position   = position;
+  //this.width      = width;
+  //this.height     = height;
+  //this.color      = color;
+  //this.type       = type;
   // Object position in the (x, y) plane
   this.direction  = direction; // direction vector (2d)
   this.speed      = speed;     // speed vector (2d)
   // Set collision boolean
-  this.color      = color;
-  // gameToken type of an instance, right now has empty string because it's not any specific type of game token
-  this.type       = type;
 
   this.setup = function() { // Stub
 
@@ -690,11 +790,11 @@ function gameToken(position, width = 50, height = 70, direction, speed, color = 
   }
 }
 
-function invaderToken(position, width, height, direction, speed, color = "blue", type = "enemy", hp = 3, fireRate =  1 /*BUG1 fireRate*/) { //BULL1 
+function invaderToken(position, width, height, color = "blue", type = "enemy", direction, speed, hp = 3, fireRate =  1 /*BUG1 fireRate*/) { //BULL1 
   // Ref: javascript function call():
   // call gameToken with the instance that is 'this' invaderToken object, to
   // pass on the arguments invaderToken has in common with gameToken
-  gameToken.call(this, position, width, height, direction, speed, color, type); 
+  gameToken.call(this, position, width, height, color, type, direction, speed); 
   // Inheritance:
   // prototype method lets us add specified properties and methods to the 
   // object that calls it. 
@@ -767,10 +867,10 @@ function invaderToken(position, width, height, direction, speed, color = "blue",
             /*position:*/     barrel,
             /*width:*/        5,
             /*height:*/       10,
-            /*direction:*/    new vector2d(0, 1),
-            /*speed:   */     new vector2d(1, 125),
             /*color:*/        "orange",
-            /*type:*/         "enemyShot"));
+            /*type:*/         "enemyShot",
+            /*direction:*/    new vector2d(0, 1),
+            /*speed:   */     new vector2d(1, 125)));
       }
       //}
     }
@@ -779,23 +879,23 @@ function invaderToken(position, width, height, direction, speed, color = "blue",
 
 // Optional: With inheritance, can add new properties at the end of 'fireRate'
 // Made into 'class' in case multiplayer gets established later
-function playerToken(position, width, height, direction, speed, /* BULL1->speed = 125,0*/color = "red", type = "player", hp = 3, fireRate = .25) {
+function playerToken(position, width, height, /* BULL1->speed = 125,0*/color = "red", type = "player", direction, speed, hp = 3, fireRate = .25) {
   // playerToken inherits from more generic gameToken class
-  gameToken.call(this, position, width, height, direction, speed, color);
+  gameToken.call(this, position, width, height, color, type, direction, speed);
   this.prototype = Object.create(gameToken.prototype);
 
   // this.position  = position;
   // this.width     = width;
   // this.height    = height;
-  // this.direction = direction;
-  // this.speed     = speed;
   // this.color     = color;
   // this.type      = type;
+  // this.direction = direction;
+  // this.speed     = speed;
   this.hp = hp; // hit points, number of bullets player can take, die = game over
   this.fireRate  = fireRate;
 
   let cooldown = 0;
-  this.score = 0;
+  this.score   = 0;
 
   this.setup = function() { // RELOCATION: Moving setup to renderer
     // Set up player token's positioning (bottom-center)
@@ -874,10 +974,10 @@ function playerToken(position, width, height, direction, speed, /* BULL1->speed 
                                            ),
                          /*width:*/        5, 
                          /*height:*/       bHeight,
-                         /*direction:*/    new vector2d(0, -1),
-                         /*speed:*/        new vector2d(0, 500),
                          /*color:*/        "yellow",
-                         /*type:*/         "playerShot"));
+                         /*type:*/         "playerShot",
+                         /*direction:*/    new vector2d(0, -1),
+                         /*speed:*/        new vector2d(0, 500)));
     }
   }
 }
@@ -935,10 +1035,10 @@ function invaderArray() { // 2d invader array
                                   /*position*/   new vector2d(drawAt, y),
                                   /*width:*/     this.invaderWidth,
                                   /*height:*/    this.invaderHeight,
-                                  /*direcion:*/  idle,
-                                  /*speed:   */  this.speed,
                                   /*color:*/     "green",
                                   /*type:*/      "enemy",
+                                  /*direcion:*/  idle,
+                                  /*speed:   */  this.speed,
                                   /*hp:*/        3,
                                   /*fireRate*/   5));
         // Place game token in gameArea
