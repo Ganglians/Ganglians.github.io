@@ -1,21 +1,5 @@
 "use strict";
 
-/**
- * requestAnim shim layer by Paul Irish
- * Finds the first API that works to optimize the animation loop,
- * otherwise defaults to setTimeout().
- */
-// window.requestAnimFrame = (function(){
-//   return  window.requestAnimationFrame   ||
-//       window.webkitRequestAnimationFrame ||
-//       window.mozRequestAnimationFrame    ||
-//       window.oRequestAnimationFrame      ||
-//       window.msRequestAnimationFrame     ||
-//       function(/* function */ callback, /* DOMElement */ element){
-//         window.setTimeout(callback, 1000 / 60);
-//       };
-// })();
-
 // Hold current width and height of the canvas, respectively
 let w1, h1;
 let nav; // holds  navigational links found in the home page (image links and otherwise)
@@ -227,7 +211,7 @@ var renderer = (function() {
 
 
 
-  // Stores in an array for sprites
+  // All sprites here
   let _sprites = [].concat(_playerSprite);
 
   function _writeText(token) {
@@ -242,7 +226,7 @@ var renderer = (function() {
   // methods to draw specific game tokens (they don't look through stored 
   // tokens)
                              // variable will be defined internally 
-  function _drawRectangle(token) { // Generic rectangle
+  function _drawRectangle(token) {
     ctx.fillStyle = token.color;
     ctx.globalAlpha = 0.7; // Opacity
     // Since drawing starts at upper-lefthand corner
@@ -320,7 +304,7 @@ var renderer = (function() {
         _drawInvader(entity);
         _drawRectOutline(entity.hitbox()); // for TESTing HITBOX
       }
-      else { // Default, rectangular polygon
+      else { // Default, draws rectangle
         _drawRectangle(entity);
         _drawRectOutline(entity.hitbox()); // for TESTing HITBOX
       }
@@ -375,7 +359,6 @@ var gameArea = (function() { // Singleton
 
   // gameArea variables:
   // Ensures game loop only starts running every other click (start -> reset & stop -> start)
-  // let go = true;
   let startLoop   = false; // Starts/stops gameloop
 
   // Title menu
@@ -385,7 +368,6 @@ var gameArea = (function() { // Singleton
   // --------------------------------------------------------------------------
 
   function _tog() {
-    //BUG1
     //if (go == true) { // Initiate game
     //  go = false;    
     if(startLoop == false) { // Initiate game
@@ -404,14 +386,13 @@ var gameArea = (function() { // Singleton
       document.getElementById("demo").innerHTML = "Game start";
       document.getElementById("play-button").innerHTML = "Stop";
       this.start(); // Set variables to start game
-    } //BUG1 
+    } 
     else { // End game, reset relevant variables
       timeStamp = 0; // TODO: Reset timeStamp(?)
       startLoop = false;
-      // As of now, toggling button to end the game will lose all progress
+      // TODO: save game progress/score
       toggle(canvas); // Hide canvas
-      // Display navigational links
-      for(let i = 0; i < nav.length; i ++) {
+      for(let i = 0; i < nav.length; i ++) { // re-display nav links
         // toggle(nav[i]);
         nav[i].style.visibility = "visible";
       }
@@ -444,7 +425,6 @@ var gameArea = (function() { // Singleton
 
     // Load title dialogue
     // Make a text token, push it into the text array
-    //_text.push(new textToken()) //***
     _text.push(new textToken( 
             /*position:*/     new vector2d(
                                canvas.width  / 2,
@@ -460,11 +440,6 @@ var gameArea = (function() { // Singleton
             /*fontsize:*/     5,
             /*fontUnit*/      "vw"));
 
-    // Title submenu text
-    // y += 40;
-    // ctx.font = "4vw" + " gamePixies";
-    // ctx.globalAlpha = 1;
-    // ctx.fillText("press any key to continue", x, y);
     _text.push(new textToken( 
             /*position:*/     new vector2d(
                                canvas.width  / 2,
@@ -488,13 +463,14 @@ var gameArea = (function() { // Singleton
     window.requestAnimationFrame(_gameLoop);
   }
 
-  function _gameLoop(timeStamp) { // TODO: Reset timeStamp(?)
+  function _gameLoop(timeStamp) {
     if(!startLoop) { // Conditional that stops loop 
       return;
     }
 
     else if(titleCard) { // Display game title
-      // Will also work for touchscreen since its listener takes an input and 
+      // Will also work for touchscreen since its listener takes an input and
+      // maps to a key
       if(!objectIsEmpty(activeKeys)) { // Start game when user presses any key
         titleCard = false;
         // Mark all menu/title textboxes for deletion
@@ -538,10 +514,6 @@ var gameArea = (function() { // Singleton
       _cleanup(); // Remove dead tokens
       _willDelete = []; // reset the list after cleaning up
 
-      // attacks
-      // TODO: Make this part of the _entity update
-      // _invadarr.shoot();
-
       document.getElementById("bull").innerHTML = "bullets: " + _shots.length;
 
       // [ 2 ] COLLISION DETECTION
@@ -566,10 +538,10 @@ var gameArea = (function() { // Singleton
       score();
       framesPerSecond(); // Just a display, doesn't contribute to game 
 
-      // Keep requesting further iterations of 'gameLoop' to animate game
       // TODO: Reset timeStamp(?) Not sure if possible
     }
 
+    // Keep requesting further iterations of 'gameLoop' to animate game
     window.requestAnimationFrame(_gameLoop);
   }
 
@@ -586,8 +558,8 @@ var gameArea = (function() { // Singleton
     _entities   = _entities.filter(notIncluded);
     _text       = _text.filter(notIncluded);
     _invadarr.a = _invadarr.a.filter(notIncluded);
-
     _shots = _shots.filter(notIncluded);
+
     // if(_willDelete.includes(_player1)) { // TODO: game over
     //   _player1 = undefined;
     // }

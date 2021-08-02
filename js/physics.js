@@ -20,7 +20,7 @@ var physics = (function () {
       // Delete individual shot if it leaves canvas (cleanup)
       // Movement
       gameArea.shots().forEach(function(shot) {
-        // Check bounds
+        // Remove bullets that leave visible game area
         if(shot.hitbox().top() > canvas.height || shot.hitbox().bottom() < 0) {
           gameArea.willDelete().push(shot);
         }
