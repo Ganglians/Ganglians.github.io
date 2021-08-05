@@ -268,20 +268,20 @@ function invaderToken(position, width, height, color = "blue", type = "enemy", d
 
     // Invaders descend from top of canvas, then move right
     if(vTop < 0) {
-      this.position.y += 100 * dt;
+      this.position.y += 175 * dt;
     }
     else if(vTop > 0 && this.direction == idle) {
       this.direction = right;
     }
 
     if(vRightmost > canvas.width) {
-      this.position.y += 10;
+      this.position.y += 30;
       this.direction = left;
     }
 
     // Left boundary of canvas
     else if(vLeftmost <= 0) {
-      this.position.y += 10;
+      this.position.y += 30;
       this.direction = right;
     }   
   }
@@ -442,7 +442,7 @@ function invaderArray() { // 2d invader array
   }
 
   // Initialize the properties of the array of invaders
-  this.setup = function(invaderCount = 3, invaderWidth = 30, invaderHeight = 20, gapSpace = 30, direction = idle, speed, frameRate = 50 /* makes invader movement blocky (every 50 unit 'seconds', move for 1 unit 'second' */, invaderRows = 3) { 
+  this.setup = function(invaderCount = 3, invaderWidth = 30, invaderHeight = 20, gapSpace = 30, direction = idle, speed, frameRate = 50 /* makes invader movement blocky (every 50 unit 'seconds', move for 1 unit 'second' */, invaderRows = 2) { 
     this.invaderCount  = invaderCount;
     this.invaderWidth  = invaderWidth;
     this.invaderHeight = invaderHeight;
@@ -485,7 +485,8 @@ function invaderArray() { // 2d invader array
                                   /*color:*/     "green",
                                   /*type:*/      "enemy",
                                   /*direcion:*/  idle,
-                                  /*speed:   */  this.speed,
+                                  /*speed:   */  new vector2d(this.speed.x, 
+                                                              this.speed.y),
                                   /*hp:*/        3,
                                   /*fireRate*/   5));
         // Place game token in gameArea

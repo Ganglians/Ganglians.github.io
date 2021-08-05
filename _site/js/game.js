@@ -1,7 +1,7 @@
 "use strict";
 
 // Hold current width and height of the canvas, respectively
-let w1, h1;
+let w1 = 1, w2 = 1, h1 = 1, h2 = 1;
 let nav; // holds  navigational links found in the home page (image links and otherwise)
 //*********************************LISTENERS***********************************
 // Function that toggles an HTML element's visibility (used on canvas)
@@ -13,9 +13,9 @@ const toggle = (elem) => {
 // user changes their browser's size)
 window.addEventListener("resize", function(event) {
   // Grab the hidden canvas element in the home page
-  canvas = document.getElementById("game-canvas");
-  let w2 = window.innerWidth;
-  let h2 = window.innerHeight;
+  // canvas = document.getElementById("game-canvas");
+  w2 = window.innerWidth;
+  h2 = window.innerHeight;
 
   // Scale game elements accordingly if the game window (canvas in this case) gets resized. Done by multiplying entitie's area and positioning by the ratio of how much the newly resized window (with w2 = width, h2 = height) differs from the previous window size (with w1 = width, h1 = height)
   gameArea.entities().forEach(function(entity) {
@@ -23,8 +23,9 @@ window.addEventListener("resize", function(event) {
     entity.height     *= h2/h1;
     entity.position.x *= w2/w1;
     entity.position.y *= h2/h1;
-    // entity.speed.x *= w2/w1; // Maybe rescale the speed as well, because a resized window will keep the speed the same as before the window's was resized
-    // entity.speed.y *= h2/h1;
+
+    entity.speed.x *= w2/w1;
+    entity.speed.y *= h2/h1;
   });
 
   // Update gameArea's text objects so that their font sizes/positioning lines up with new canvas size
@@ -41,8 +42,8 @@ window.addEventListener("resize", function(event) {
   w1 = w2;
 
   // Canvas resizing (responsive canvas resizes to fit available space)
-  canvas.width  = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.width  = w2;
+  canvas.height = h2;
 });
 
 // Resize canvas from the get-go
